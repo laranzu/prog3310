@@ -65,49 +65,55 @@ be submitting your assignments in ZIP form. ZIP, \emph{not} 7z or RAR or tar.
 (And don't put spaces or funny characters in file and folder names.)
 
 
-\SECTION{This is a section}
-
-\DOT The quick brown fox jumps over the lazy dog and now is the time for all good men to come
-to the aid of the party.
-
-\MINOR{This is a subsection}
+\SECTION{Compile and run a program}
 
 \begin{IMPORTANT}
-The quick brown fox jumps over the lazy dog and now is the time for all good men to come
-to the aid of the party.
+Do, or do not. There is no try \DSH Yoda.
+
+The tutorial exercises in this course are practical, not theoretical. If you think
+you already know everything here, do it anyway. Just to make sure.
+
+If you can't do everything in one tutorial, that's OK too. The goal is to find
+out what you need to learn before starting the actual tutorials and assignments.
 \end{IMPORTANT}
 
-Here is some sample code
-
+The first program is \NAME{peasant.py} or \NAME{Peasant.java}. You can run from the
+command line with
 \begin{CODE}\begin{verbatim}
-class HelloWorld {
-    public static void main(string args[]) {
-        System.out.println("Hello world");
-    }
-}
+    > python peasant.py
+    hello world
+    hello world
+    ...
+\end{verbatim}\end{CODE}
+or
+\begin{CODE}\begin{verbatim}
+    > javac Peasant.java
+    > java Peasant
+    hello world
+    hello world
+    ...
 \end{verbatim}\end{CODE}
 
-This is a shell command
+\begin{IMPORTANT}
+This tutorial shows the actual commands you should type. In future we will just ask you
+to \DQ{compile and run the program} without this much detail.
+\end{IMPORTANT}
 
-\CODELINE{> python peasant.py}
+This program expects you to type something and press Enter, which will then be printed
+back to the terminal. It will keep doing so until End Of File, which in a terminal is
+you typing \NAME{Control-D} or \NAME{Control-Z} depending on your system. If you don't
+already know, find out which stops the program on your system.
 
-\MINOR{Testing math}
+The peasant program (Python or Java) has one optional command line argument.
+In the source code this is handled in \NAME{processArgs} and you can see the effect
+by running the program again. Some people prefer to study the code and then run the
+program; other people prefer to run the program first and then look at the code.
+There is no one right way.
 
-Instead of being equal to mass, the points cost for the hull becomes
-\[ hull\ =\ \frac{mass^{2}} {100} \]
-rounded off to the nearest integer.
-
-For example, the \emph{Suffren} class light cruiser from Fleet Book 1
-has mass 54 and a points cost of 181. Using the CPV calculation, the hull cost is
-\[ \frac{54^{2}}{100} = \frac{2916}{100} = 29 \]
-a reduction of 25 points for a new total points cost of 156. On the
-other hand, an \emph{Excalibur} class dreadnought has mass 140 and points cost
-472. Using the CPV, the hull cost is
-\[ \frac{140^{2}}{100} = \frac{19600}{100} = 196 \]
-an increase of 56 for a new total points
-cost of 528.
+\CODELINE{python peasant.py Dennis}
+or
+\CODELINE{java Peasant Dennis}
 
 
-And we are done.
 
 \end{document}

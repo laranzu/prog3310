@@ -58,7 +58,7 @@
 
 % Don't indent first line, put space between paragraphs
 \setlength{\parindent}{0pt}
-\setlength{\parskip}{2ex plus1ex minus0.2ex}
+\setlength{\parskip}{1ex plus1ex minus0.2ex}
 
 % Block of program code or console input and output, indented.
 % Because code often has backslashes and curly brackets, always
@@ -71,9 +71,7 @@
 
 % One liner code/console command
 \newcommand{\CODELINE}[1] {%
-        \hspace{2em}\begin{ttfamily}\small%
-        #1
-        \normalsize\end{ttfamily}%
+        \begin{CODE}#1\end{CODE}%
 }
 
 % Text indented and italic
