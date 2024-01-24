@@ -64,6 +64,10 @@ You need to know how to decompress / extract \NAME{ZIP} archives, as later on yo
 be submitting your assignments in ZIP form. ZIP, \emph{not} 7z or RAR or tar.
 (And don't put spaces or funny characters in file and folder names.)
 
+You don't have to finish this tutorial immediately. If you don't have the right
+software, or don't understand how to do something, you can catch up. Ask your fellow
+students or your tutor for help.
+
 
 \SECTION{Compile and run a program}
 
@@ -80,15 +84,15 @@ out what you need to learn before starting the actual tutorials and assignments.
 The first program is \NAME{peasant.py} or \NAME{Peasant.java}. You can run from the
 command line with
 \begin{CODE}\begin{verbatim}
-    > python peasant.py
+    python peasant.py
     hello world
     hello world
     ...
 \end{verbatim}\end{CODE}
 or
 \begin{CODE}\begin{verbatim}
-    > javac Peasant.java
-    > java Peasant
+    javac Peasant.java
+    java Peasant
     hello world
     hello world
     ...
@@ -114,6 +118,32 @@ There is no one right way.
 or
 \CODELINE{java Peasant Dennis}
 
+\begin{IMPORTANT}
+Don't think about the name of the program or the command line argument. This is an
+old joke, because the tutorial was written by an old person.
+\end{IMPORTANT}
 
+What happens if you type more than one name on the command line?
+
+
+\SECTION{Second program}
+
+The second program is similar, in that it reads input and writes output, but is
+not identical. Open the source code in your editor / IDE and run the program.
+
+begin{CODE}\begin{verbatim}
+    python knight.py
+\end{verbatim}\end{CODE}
+or
+\begin{CODE}\begin{verbatim}
+    javac Knight.java
+    java Knight
+\end{verbatim}\end{CODE}
+
+This program has new \NAME{chooseResponse} code that changes the output depending
+on the input. One special input will cause the program to crash, another will
+cause the program to loop forever. Read the code to find out what these strings
+are, and try both values. (If you don't already know, you can stop a runaway program
+with \NAME{Control-C}.)
 
 \end{document}
