@@ -1,10 +1,10 @@
 
 /** COMP3310 Tute 0 programming warmup exercise.
- *  This is the Java version of the first program.
+ *  Second of two programs.
  *  Compile with
- *      javac Peasant.java
+ *      javac Knight.java
  *  Run with
- *      java Peasant
+ *      java Knight
  *
  *  Written by H Fisher, ANU, 2024
  *  Creative Commons CC-BY-4.0 license
@@ -12,13 +12,12 @@
 
 import java.io.*;
 
-public class Peasant {
+public class Knight {
 
-    static String name = null;
+    /** Read input until EOF. Response depends on input. */
 
     protected static void inputLoop()
         throws IOException
-        // Read and echo input until EOF
     {
         BufferedReader input;
         String line, response;
@@ -29,20 +28,35 @@ public class Peasant {
             // Java Reader just returns null on EOF, not an exception
             if (line == null)
                 break;
-            if (name == null)
-                response = line;
-            else
-                response = String.format("%s: %s", name, line);
-            System.out.println(response);
+            chooseResponse(line);
         }
         input.close();
     }
 
+    /** Decide what to print based on input line. */
+
+    protected static void chooseResponse(String line)
+    {
+        if (line.equals("it")) {
+            // Crash
+            throw new RuntimeException("Aaargh! You said it!");
+        } else if (line.equals("ni")) {
+            // Go into infinite loop
+            while (true) {
+                System.out.println("Ni! Ni! Ni!");
+            }
+        } else {
+            System.out.println(line);
+        }
+    }
+
+
+    /** No command line arguments. */
+
     protected static void processArgs(String[] args)
     {
-        // Handle command line arguments, just one for this program
         if (args.length > 0) {
-            name = args[0];
+            throw new RuntimeException("No command line arguments");
         }
     }
 
