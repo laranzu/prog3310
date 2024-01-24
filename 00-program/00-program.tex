@@ -1,0 +1,62 @@
+
+
+%   COMP3310 tutorial zero: basic programming
+%   Written by H Fisher, ANU, 2024
+%   Creative Commons CC-BY-4.0 license
+
+%   LaTeX markup for XeTeX with a standard texlive distribution
+%   Command to build:
+%       xelatex 00-program.tex
+
+\input{../common/formatting}
+
+\begin{document}
+
+\TITLE{Programming}
+
+\SECTION{This is a section}
+
+\DOT The quick brown fox jumps over the lazy dog and now is the time for all good men to come
+to the aid of the party.
+
+\MINOR{This is a subsection}
+
+\begin{IMPORTANT}
+The quick brown fox jumps over the lazy dog and now is the time for all good men to come
+to the aid of the party.
+\end{IMPORTANT}
+
+Here is some sample code
+
+\begin{CODE}\begin{verbatim}
+class HelloWorld {
+    public static void main(string args[]) {
+        System.out.println("Hello world");
+    }
+}
+\end{verbatim}\end{CODE}
+
+This is a shell command
+
+\CODELINE{> python peasant.py}
+
+\MINOR{Testing math}
+
+Instead of being equal to mass, the points cost for the hull becomes
+\[ hull\ =\ \frac{mass^{2}} {100} \]
+rounded off to the nearest integer.
+
+For example, the \emph{Suffren} class light cruiser from Fleet Book 1
+has mass 54 and a points cost of 181. Using the CPV calculation, the hull cost is
+\[ \frac{54^{2}}{100} = \frac{2916}{100} = 29 \]
+a reduction of 25 points for a new total points cost of 156. On the
+other hand, an \emph{Excalibur} class dreadnought has mass 140 and points cost
+472. Using the CPV, the hull cost is
+\[ \frac{140^{2}}{100} = \frac{19600}{100} = 196 \]
+an increase of 56 for a new total points
+cost of 528.
+
+
+And we are done.
+
+\end{document}
