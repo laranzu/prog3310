@@ -40,9 +40,12 @@ def serverLoop(host, port):
     while True:
         try:
             message, sender = readRequest(sock)
-            reply = message + ": Ni!"
-            print("Server sending reply", reply)
-            sendReply(sock, reply, sender)
+            if message != "it":
+                reply = message + "- Ni!"
+                print("Server sending reply", reply)
+                sendReply(sock, reply, sender)
+            else:
+                print("We refuse to reply")
         except OSError:
             break
     print("Server close")
