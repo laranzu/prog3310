@@ -85,16 +85,12 @@ The first program is \NAME{peasant.py} or \NAME{Peasant.java}. You can run from 
 command line with
 \begin{CODE}\begin{verbatim}
     python peasant.py
-    hello world
-    hello world
     ...
 \end{verbatim}\end{CODE}
 or
 \begin{CODE}\begin{verbatim}
     javac Peasant.java
     java Peasant
-    hello world
-    hello world
     ...
 \end{verbatim}\end{CODE}
 
@@ -176,6 +172,11 @@ Can the Java and Python programs interoperate? Use the IPC command, but instead
 of both being Java or both being Python, try one of each.
 
 Modify one program to stop on an empty line, ie pressing Enter without any text.
+
+Put the knight program into an infinite loop. Instead of Control-C, use the
+\NAME{ps} and \NAME{kill} commands (Linux and MacOS) or \NAME{Task Manager}
+(MS Windows) to stop it. If you don't know how to do this, now is a good time
+to learn.
 
 Modify the peasant program to join all the command line arguments together (with
 a space in between each) to form a more complex name.

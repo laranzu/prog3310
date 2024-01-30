@@ -21,17 +21,17 @@ from socket import *
 from socket import timeout as SocketTimeOutError
 
 
-# IP address and port that client will contact.
+# IP address and port that client will contact
 serviceHost = "127.0.0.1"
 servicePort = 3310
 
-# Our maximum UDP data size, in bytes
-# Absolute maximum for UDP would be 64K, but reliabily goes down
-# fast once UDP packets get beyond 8K or so, and with IPv6 beyond 1K
+# Our maximum UDP data size, in bytes.
+# Absolute maximum for UDP would be 64K, but reliability goes down a lot
+# for packets larger than 1K or so, and more than 8K is unlikely.
 MSG_MAX = 1024
 
 # Maximum time to wait for a reply, in seconds
-TIMEOUT = 5.0
+TIMEOUT = 4.0
 
 
 def inputLoop(host, port):
@@ -43,7 +43,7 @@ def inputLoop(host, port):
     sock.connect((host, port))
     print("Client created socket to", sock.getpeername()[0], sock.getpeername()[1])
     # UDP, like IP, is not a reliable protocol so we can't guarantee packets get
-    # there, and in fact we can't even be sure that there is a server!  This is
+    # there, and in fact we can't even be sure that there is a server! This is
     # the maximum time to wait for a reply. (Also the maximum time to wait when
     # trying to send, but that usually is not a problem.)
     sock.settimeout(TIMEOUT)
@@ -57,9 +57,9 @@ def inputLoop(host, port):
         print("Sent request to server")
         reply = readReply(sock)
         if reply is None:
-            print("NO reply")
+            print("TIME OUT")
         else:
-            print("Received reply", reply)
+            print(reply)
     print("Client close")
     sock.close()
 

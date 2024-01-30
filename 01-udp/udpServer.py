@@ -40,12 +40,17 @@ def serverLoop(host, port):
     while True:
         try:
             message, sender = readRequest(sock)
-            if message != "it":
-                reply = message + "- Ni!"
+            if message == "it":
+                print("We refuse to reply")
+            elif message == "ni":
+                print("Sending multiple replies")
+                for i in range(0, 3):
+                    reply = "Ni!"
+                    sendReply(sock, reply, sender)
+            else:
+                reply = "ACK " + message
                 print("Server sending reply", reply)
                 sendReply(sock, reply, sender)
-            else:
-                print("We refuse to reply")
         except OSError:
             break
     print("Server close")
@@ -54,11 +59,11 @@ def serverLoop(host, port):
 def readRequest(sock):
     """Read a string up to predefined limit. Return string and sender (ie client)"""
     # In UDP we usually don't have a permanent connection to the client, so we
-    # read a network packet, up to limit, and address of where it came from.
+    # read a network packet (up to limit) and address of where it came from.
     inData, sender = sock.recvfrom(MSG_SIZE)
     # The data is just bytes. We hope it is a UTF-8 string, the Internet standard
-    # for sending text in any language, but our programming language might use another
-    # format. Internet programs should decode network data as soon as received.
+    # for sending text, but our programming language might use another format.
+    # Internet programs should decode network data as soon as received.
     # The backslashreplace is because we don't want to crash if it isn't UTF-8.
     inMessage = inData.decode('utf-8', 'backslashreplace')
     print("Server received from", sender, "request", inMessage)

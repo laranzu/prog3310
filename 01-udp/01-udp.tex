@@ -1,4 +1,183 @@
 
+
+%   COMP3310 UDP tutorial
+%   Written by H Fisher, ANU, 2024
+%   Creative Commons CC-BY-4.0 license
+
+%   LaTeX markup for XeTeX with a standard texlive distribution
+%   Command to build:
+%       xelatex 01-udp.tex
+
+\input{../common/formatting}
+
+\begin{document}
+
+\TITLE{UDP Client Server}
+
+
+\MINOR{Outline}
+
+In this tutorial you will
+
+\DOT Compile and run a pair of programs implementing a client-server design
+
+\DOT Study how text is sent and received over the Internet
+
+\DOT Begin studying a few of the problems that can occur in Internet programs
+
+
+\SECTION{Client Server}
+
+For this tutorial you will need two command line shells, one for running
+the server (\NAME{udpServer.py} or \NAME{UdpServer.java}) and one for the client
+(\NAME{udpClient.py} or \NAME{UdpClient.java}).
+
+Have a quick look through the code, but don't worry about understanding every
+line just yet. For now, just identify the main program loop and the two functions
+or methods that the loop relies on.
+
+Ideally you should have WireShark running as well, so you can see the network
+packets being sent back and forth. Initially you just need to watch UDP packets
+on the 127.0.0.1 (loopback) interface.
+
+Run the server program in one shell. Nothing should happen: the server is \SQ{passive}
+and waits for clients to connect.
+
+Run the client program in another shell, and type a line. This is the \NAME{request}
+sent, which should generate output in both windows.
+The server generates some log messages to show what it is doing, which don't affect
+the client but are useful for debugging. The client also has some log messages, and
+prints the \NAME{reply} or \NAME{response} it gets from the server.
+
+If you have WireShark running, you should see a packet being sent in each direction.
+
+The client program stops on terminal EOF. (Control-D or Control-Z depending on your
+system.) Do this. What happens in the server window? In WireShark?
+
+Run the client again, and type a few more words.
+
+Open a third shell, and run a second client program, so you have two connected to the
+same server. Try typing different words in each client shell.
+
+\begin{IMPORTANT}
+If you study the logging messages in the server window, you should see a difference
+between those for the first run of the client program and those from the second.
+This will be explained in detail later.
+\end{IMPORTANT}
+
+The server program does not read from input, so won't respond to EOF. Instead use
+Control-C to stop it.
+
+
+\SECTION{Reliability}
+
+This pair of programs are using UDP, \NAME{Unreliable Data Protocol}. Since real
+network errors are very rare when both programs are running on the same computer,
+the server program has been modified to make it misbehave on two special requests,
+\SQ{it} and \SQ{ni}. Read the server program code and find what each of these will
+do within \NAME{serverLoop}.
+
+\begin{IMPORTANT}
+For the next steps, try to predict what will happen before you actually type in any
+requests. If your prediction is right, good. If your prediction is wrong but you
+can understand why, that's good too.
+\end{IMPORTANT}
+
+Make sure you have a server and client running in separate shells.
+
+1. Type just \texttt{it} as the request. Wait several seconds. (Read the client program
+code to find out the minimum time.)
+
+2. Type three requests (Enter after each) \texttt{hello}, \texttt{ni}, \texttt{world}.
+What happens?
+
+Type in three or four more requests.
+
+EOF the client and run it again \DSH this is the easiest way to escape when
+a client and server are not synchronised.
+
+3. Control-C the \emph{server} program. Wait a few seconds. What happens to the client?
+
+Type a request (not \texttt{it}) in the client. What happens? What do you see in Wireshark?
+
+
+\SECTION{Networking}
+
+For this part of the exercise you will need to work with another student, with both your
+computers connected to the same network. This could be two PCs in the same CSIT lab, or
+two laptops connected to the same wireless network.
+
+In a shell, type command \NAME{ifconfig} on a Linux or Mac, \NAME{ipconfig} on MS Windows.
+
+This command shows the network interfaces on your computer and a lot of technical details
+about each. For now the only information we need is the \texttt{inet} (Internet Address)
+or \texttt{IPv4 Address}. This is four decimal numbers separated by periods \DSH the same
+format as the \texttt{127.0.0.1} address shown in the server and client log messages.
+
+\begin{IMPORTANT}
+Once Upon A Time a computer would have only one or two network interfaces. Modern 21st
+century computers may have lots of different network interfaces to search through.
+
+You may or may not see different addresses in \emph{IPv6} format as well. Some future version
+of this course will use IPv6 only, but not yet.
+\end{IMPORTANT}
+
+Both addresses should start with the same one or two numbers, indicating a shared network.
+For example my two home computers have IPv4 addresses \texttt{10.1.1.113}
+and \texttt{10.1.1.217}.
+
+(It is \emph{possible} that this tutorial will run with two computers anywhere in the world,
+since that is why we use the Internet, but there are a lot of potential problems
+with no easy solutions. Both computers on the same network is more likely to work.)
+
+Pick one computer to run the server and one for the client. The client will need the IP
+address of the computer running the server. First verify that the client computer can
+connect over the network with the \NAME{ping} command:
+
+\begin{CODE}\begin{verbatim}
+/Users/hugh/Desktop% ping 10.1.1.113
+PING 10.1.1.113 (10.1.1.113): 56 data bytes
+64 bytes from 10.1.1.113: icmp_seq=0 ttl=64 time=0.756 ms
+64 bytes from 10.1.1.113: icmp_seq=1 ttl=64 time=0.363 ms
+^C
+\end{verbatim}\end{CODE}
+
+1. Run the server program on the \SQ{server} computer (in the example above, the computer
+with IP address \texttt{10.1.1.113}) with no command line arguments.
+Run the client program on the other \SQ{client} computer with the IP address of the server
+as the command line argument:
+\CODELINE{python udpClient.py 10.1.1.113}
+or
+\CODELINE{java UdpClient 10.1.1.113}
+
+When you type a request, the client will crash! But if you run a client on the server computer
+itself, it will be able to send a request and get a reply. This is because the server IP address
+\texttt{127.0.0.1} only works for programs on the same computer.
+
+2. Control-C the server and restart with the IP address of the computer it is running on:
+\CODELINE{python udpServer.py 10.1.1.217}
+or
+\CODELINE{java UdpServer 10.1.1.217}
+
+Run the client again on the other computer, with the server IP address, and this time
+it should work.
+
+3. Control-C the server and start it again with this special address:
+\CODELINE{python udpServer.py 0.0.0.0}
+or
+\CODELINE{java UdpServer 0.0.0.0}
+
+Make sure that the client is still working.
+
+\begin{IMPORTANT}
+\texttt{127.0.0.1} means \SQ{inside this computer}.
+
+\texttt{0.0.0.0} for a server means \SQ{Whatever interface this computer has}. It allows
+the server program to be moved from computer to computer without needing to change the
+IP address.
+\end{IMPORTANT}
+
+
 UDP client / server
 
 The server has a limit of 16 bytes on incoming message.
@@ -10,10 +189,11 @@ What is the limit on outgoing?
 
 Modify server to handle Control-C and shut down nicely
 
+Modify client and server to use a shared library that contains the
+maximum message size.
+
 Change client sendRequest to send UTF-16 string instead. What happens to request and reply?
 
-Run server with command line argument "localhost" as the address
 
-If you shut down the server with Control-C, what happens to the client?
 
-With no server running, what does the client do?
+\end{document}
