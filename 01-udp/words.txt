@@ -1,7 +1,7 @@
 
 Test words for the UDP client/server tutorial.
 
-* A longer request
+* A long request
 extraterrestrial
 
 * A very long request
