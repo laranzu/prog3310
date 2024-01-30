@@ -21,9 +21,9 @@ In this tutorial you will
 
 \DOT Compile and run a pair of programs implementing a client-server design
 
-\DOT Study how text is sent and received over the Internet
-
 \DOT Begin studying a few of the problems that can occur in Internet programs
+
+\DOT Study how text is sent and received over the Internet
 
 
 \SECTION{Client Server}
@@ -33,8 +33,8 @@ the server (\NAME{udpServer.py} or \NAME{UdpServer.java}) and one for the client
 (\NAME{udpClient.py} or \NAME{UdpClient.java}).
 
 Have a quick look through the code, but don't worry about understanding every
-line just yet. For now, just identify the main program loop and the two functions
-or methods that the loop relies on.
+line just yet. For now, just identify the main client or server loop and the two
+functions or methods that the loop relies on.
 
 Ideally you should have WireShark running as well, so you can see the network
 packets being sent back and forth. Initially you just need to watch UDP packets
@@ -86,19 +86,21 @@ can understand why, that's good too.
 Make sure you have a server and client running in separate shells.
 
 1. Type just \texttt{it} as the request. Wait several seconds. (Read the client program
-code to find out the minimum time.)
+code to find out exactly how long.)
 
 2. Type three requests (Enter after each) \texttt{hello}, \texttt{ni}, \texttt{world}.
 What happens?
 
-Type in three or four more requests.
+Type in three or four more words.
 
 EOF the client and run it again \DSH this is the easiest way to escape when
 a client and server are not synchronised.
 
 3. Control-C the \emph{server} program. Wait a few seconds. What happens to the client?
 
-Type a request (not \texttt{it}) in the client. What happens? What do you see in Wireshark?
+Type a request in the client. What happens? What do you see in Wireshark?
+
+Still without a server, run the client program. Does it crash immediately?
 
 
 \SECTION{Networking}
@@ -177,22 +179,71 @@ the server program to be moved from computer to computer without needing to chan
 IP address.
 \end{IMPORTANT}
 
+4. Swap the computer roles, with the server running on the former client computer and
+the client on what used to be the server. If they don't work, check the IP addreses
+you are using as command line arguments.
 
-UDP client / server
 
-The server has a limit of 16 bytes on incoming message.
+\SECTION{Messages}
 
-Send "supercalifragilisticexpialidocious"
+The client and server programs both have a limit on the maximum size data that
+will be read from a socket. Read the code to find out what these values are.
 
-What happens if the client sends "extraterrestrial" ?
-What is the limit on outgoing?
+This tutorial comes with a file \texttt{words.txt} for testing the limits. Open this
+file in a text editor or word processor: if you need to specify the encoding, UTF-8.
+The file contains some French and Mandarin characters: if these are not displayed
+properly on your system, instead appearing as small boxes, you may need to change
+editor or terminal settings, or try a different editor.
 
-Modify server to handle Control-C and shut down nicely
+Run a server and a client. (For this section they don't need to be on different
+computers.)
 
-Modify client and server to use a shared library that contains the
-maximum message size.
+From the editor with \texttt{words.txt} try copying \texttt{Test} and pasting into
+the client terminal. Press Enter to send the request as normal.
 
-Change client sendRequest to send UTF-16 string instead. What happens to request and reply?
+1. Copy the long request (\SQ{extraterrestrial}) into the client. How many characters
+are you sending?
+
+How long is the reply from the server? Is this greater than the \texttt{MSG\_SIZE}
+limit inside the server program? Read the server code: how can this happen?
+
+2. Copy and send the very long request. Now what happens, and why?
+
+\begin{IMPORTANT}
+Ideally the maximum size of each request and reply should be part of the \NAME{protocol
+specification}, so everyone agrees on what the limits are and can write programs that
+interoperate. The programs may \NAME{negotiate} settings: \DQ{Can I send you 65535
+bytes?} \DQ{No, only 16384}.
+
+This tutorial is unfortunately more realistic: client and server programmers pick
+numbers that seem about right, and only discover problems when strange thngs start
+happening.
+\end{IMPORTANT}
+
+3. Copy and send the 16 characters in French, and the 10 characters in Mandarin.
+What happens?
+
+\begin{IMPORTANT}
+Characters are not bytes. Older programming languages (and older programmers) assumed
+that one byte would be enough for a character, or maybe two. Both are wrong and you
+should allow up to 4 bytes (32 bits) per character.
+\end{IMPORTANT}
+
+4. Control-C the server. Increase the server limit in the program code and run it
+again. Repeat until all the requests can be received without being truncated.
+
+
+\SECTION{Optional}
+
+Modify the client and server programs to use a shared library that contains the
+maximum message size instead of having a separate limit within each program.
+
+Modify the server program to shut down nicely on Control-C. (ie it should print out
+\DQ{Done.} in the log messages.)
+
+Change the client \NAME{sendRequest} to send a UTF-16 encoded string instead of the
+current UTF-8. \emph{Don't} change anything else. What happens to the request and
+reply?
 
 
 

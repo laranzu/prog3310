@@ -66,7 +66,7 @@ def inputLoop(host, port):
 def sendRequest(sock, request):
     """Send our request to server"""
     # Like the server, encoding into wire format is done at the last moment
-    request = request.encode('utf-8')
+    request = request.encode('utf-16')
     # Our client socket is already connected to the server address,
     # so we just need to provide the data
     sock.send(request)
