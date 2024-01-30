@@ -6,7 +6,7 @@
         python knight.py
 
     Written by H Fisher, ANU, 2024
-    Creative Commons CC-BY-4.0 license
+    This code may be freely copied and modified
 """
 
 import sys
