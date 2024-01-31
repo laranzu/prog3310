@@ -24,7 +24,15 @@ public class UdpServer {
     static int      servicePort = 3310;
 
     //  Maximum client request size, in bytes
-    static final int    MSG_SIZE = 16;
+    static final int    MSG_SIZE = 16;      // Do not copy this
+
+
+    /** Python can return two values at a time, Java cannot */
+    private static class SDU {
+        // Do not copy this
+        public DatagramPacket   dgram;
+        public String           text;   // Java form of dgram data
+    }
 
 
     /** Run echo service on given host and port */
@@ -33,7 +41,7 @@ public class UdpServer {
         throws IOException
     {
         DatagramSocket  sock;
-        DatagramPacket  request;
+        SDU             request;
         String          message, reply;
 
         // Create and Internet UDP socket and set the address and port that we read requests from
@@ -43,20 +51,8 @@ public class UdpServer {
         // And now read and respond forever
         while (true) {
             try {
-                // In UDP we usually don't have a permanent connection to the client, so we
-                // read a network packet (up to limit) AND address of where it came from.
-                request = new DatagramPacket(new byte[MSG_SIZE], MSG_SIZE);
-                sock.receive(request);
-                // The data is just bytes. We hope it is a UTF-8 string, the Internet standard
-                // for sending text, but Java uses a different format internally.
-                // Internet programs should decode network data as soon as received.
-                try {
-                    message = new String(request.getData(), 0, request.getLength(), "UTF-8");
-                } catch (UnsupportedEncodingException e) {
-                    // Not UTF-8 :-(
-                    System.out.println("Unable to decode UTF-8 string");
-                    message = "????";
-                }
+                request = readRequest(sock);
+                message = request.text;
                 // Decide what to do
                 if (message.equals("it")) {
                     System.out.println("We refuse to reply");
@@ -79,9 +75,37 @@ public class UdpServer {
         sock.close();
     }
 
+    /** Read a string up to predefined limit. Return string and original packet with client address */
+
+    protected static SDU readRequest(DatagramSocket sock)
+        throws IOException
+    {
+        DatagramPacket  packet;
+        SDU             result;
+
+        result = new SDU();
+        // In UDP we usually don't have a permanent connection to the client, so we
+        // read a network packet (up to limit) AND address of where it came from.
+        packet = new DatagramPacket(new byte[MSG_SIZE], MSG_SIZE);
+        sock.receive(packet);
+        result.dgram = packet;
+        // The data is just bytes. We hope it is a UTF-8 string, the Internet standard
+        // for sending text, but Java uses a different format internally.
+        // Internet programs should decode network data as soon as received.
+        try {
+            result.text = new String(packet.getData(), 0, packet.getLength(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // Not UTF-8 :-(
+            System.out.println("Unable to decode UTF-8 string");
+            result.text = "????";
+        }
+        return result;
+    }
+
+
     /** Send complete reply to client */
 
-    protected static void sendReply(DatagramSocket sock, String message, DatagramPacket request)
+    protected static void sendReply(DatagramSocket sock, String message, SDU request)
         throws UnsupportedEncodingException, IOException
     {
         byte[]          outData;
@@ -92,7 +116,7 @@ public class UdpServer {
         // doesn't need to worry about what packets look like.
         outData = message.getBytes("UTF-8");
         // Create a new packet, same address as original request
-        reply = new DatagramPacket(outData, outData.length, request.getSocketAddress());
+        reply = new DatagramPacket(outData, outData.length, request.dgram.getSocketAddress());
         // and send
         sock.send(reply);
     }
