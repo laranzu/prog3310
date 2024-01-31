@@ -1,12 +1,12 @@
 
-/** Python UDP echo server program for ANU COMP3310.
+/** UDP echo server program for ANU COMP3310.
  *
  *  This is one half of a traditional Internet client-server architecture.
  *  As a server this program is expected to run (more or less) all the
  *  time, and handle requests from any client that connects.
  *
  *  Run with
- *      Java UdpServer [ IP addr ] [ port ]
+ *      java UdpServer [ IP addr ] [ port ]
  * 
  *  Written by H Fisher, ANU, 2024
  *  This code may be freely copied and modified
@@ -60,12 +60,12 @@ public class UdpServer {
                     System.out.println("Sending multiple replies");
                     for (int i = 0; i < 3; i += 1) {
                         reply = "Ni!";
-                        sendReply(sock, reply, request);
+                        sendReply(sock, reply, request.dgram.getSocketAddress());
                     }
                 } else {
                     reply = "ACK " + message;
                     System.out.printf("Server sending reply %s\n", reply);
-                    sendReply(sock, reply, request);
+                    sendReply(sock, reply, request.dgram.getSocketAddress());
                 }
             } catch (IOException e) {
                 break;
@@ -105,7 +105,7 @@ public class UdpServer {
 
     /** Send complete reply to client */
 
-    protected static void sendReply(DatagramSocket sock, String message, SDU request)
+    protected static void sendReply(DatagramSocket sock, String message, SocketAddress sender)
         throws UnsupportedEncodingException, IOException
     {
         byte[]          outData;
@@ -116,7 +116,7 @@ public class UdpServer {
         // doesn't need to worry about what packets look like.
         outData = message.getBytes("UTF-8");
         // Create a new packet, same address as original request
-        reply = new DatagramPacket(outData, outData.length, request.dgram.getSocketAddress());
+        reply = new DatagramPacket(outData, outData.length, sender);
         // and send
         sock.send(reply);
     }
@@ -127,7 +127,7 @@ public class UdpServer {
     protected static void processArgs(String[] args)
     {
         //  This program has only two CLI arguments, and we know the order.
-        //  For any program with more than two args, use a loop or library.
+        //  For any program with more than two args, use a loop or package.
         if (args.length > 0) {
             serviceHost = args[0];
             if (args.length > 1) {

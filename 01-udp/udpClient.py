@@ -28,7 +28,7 @@ servicePort = 3310
 # Our maximum UDP data size, in bytes.
 # Absolute maximum for UDP would be 64K, but reliability goes down a lot
 # for packets larger than 1K or so, and more than 8K is unlikely.
-MSG_MAX = 1024      # Do not copy this
+MSG_MAX = 1024
 
 # Maximum time to wait for a reply, in seconds
 TIMEOUT = 4.0
