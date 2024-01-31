@@ -8,7 +8,7 @@
     time, and handle requests from any client that connects.
 
     Run with
-        python server.py [ IP addr ] [ port ]
+        python udpServer.py [ IP addr ] [ port ]
 
     Written by H Fisher, ANU, 2024
     This code may be freely copied and modified

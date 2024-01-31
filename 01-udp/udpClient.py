@@ -7,7 +7,7 @@
     The client knows the server, and makes requests to get a response.
 
     Run with
-        python client.py [ IP addr ] [ port ]
+        python udpClient.py [ IP addr ] [ port ]
 
     Written by H Fisher, ANU, 2024
     This code may be freely copied and modified
