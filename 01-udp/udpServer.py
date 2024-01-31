@@ -26,7 +26,7 @@ serviceHost = "127.0.0.1"
 servicePort = 3310
 
 # Maximum client request size, in bytes
-MSG_SIZE = 16
+MSG_SIZE = 16       # Do not copy this
 
 
 def serverLoop(host, port):

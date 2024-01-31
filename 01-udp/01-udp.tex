@@ -235,7 +235,7 @@ should allow up to 4 bytes (32 bits) per character.
 again. Repeat until all the requests can be received without being truncated.
 
 
-\SECTION{Programming}
+\SECTION{Coding}
 
 Change the client \NAME{sendRequest} to send a UTF-16 encoded string instead of the
 current UTF-8. \emph{Don't} change anything else. What happens to the request and
@@ -243,6 +243,9 @@ reply? Change back to UTF-8 afterwards.
 
 Modify the client and server programs to use a shared package that contains the
 maximum message size instead of having a separate limit within each program.
+
+\emph{Optional}: Have a single pair of \texttt{readRequest} and \texttt{sendReply}
+in the shared package that are used by both the client and server.
 
 Modify the server program to shut down nicely on Control-C. (ie it should print out
 \DQ{Done.} in the log messages.)
