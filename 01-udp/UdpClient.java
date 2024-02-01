@@ -38,7 +38,7 @@ public class UdpClient {
     {
         DatagramSocket      sock;
         BufferedReader      input;
-        String              line;
+        String              line, reply;
         InetSocketAddress   remote;
 
         // Create an Internet UDP socket
@@ -60,9 +60,58 @@ public class UdpClient {
             line = input.readLine();
             if (line == null)
                 break;
+            sendRequest(sock, line);
+            System.out.println("Sent request to server");
+            reply = readReply(sock);
+            if (reply == null)
+                System.out.println("TIME OUT");
+            else
+                System.out.println(reply);
         }
         System.out.println("Client close");
         sock.close();
+    }
+
+    /** Send our request to server */
+
+    protected static void sendRequest(DatagramSocket sock, String request)
+        throws UnsupportedEncodingException, IOException
+    {
+        byte[]          outData;
+        DatagramPacket  packet;
+
+        // Like the server, encoding into wire format is done at the last moment
+        outData = request.getBytes("UTF-8");
+        // Our client socket is already connected to the server address
+        packet = new DatagramPacket(outData, outData.length, sock.getRemoteSocketAddress());
+        // and send
+        sock.send(packet);
+    }
+
+    /** Read string and return, or null if the socket times out */
+
+    protected static String readReply(DatagramSocket sock)
+        throws IOException
+    {
+        DatagramPacket  packet;
+        String          reply;
+
+        // Socket is permanently connected so we know who it came from.
+        packet = new DatagramPacket(new byte[MSG_MAX], MSG_MAX);
+        try {
+            sock.receive(packet);
+        } catch (SocketTimeoutException e) {
+            return null;
+        }
+        // We hope the server sent us UTF-8, but don't count on it
+        try {
+            reply = new String(packet.getData(), 0, packet.getLength(), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            // Not UTF-8 :-(
+            System.out.println("Unable to decode UTF-8 string");
+            reply = "????";
+        }
+        return reply;
     }
 
 

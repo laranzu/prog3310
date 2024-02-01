@@ -25,7 +25,13 @@ In this tutorial you will
 
 \DOT Discover the network addresses of computers and understand two special values
 
-\DOT Study how text is sent and received over the Internet
+\DOT See how text is sent and received over the Internet
+
+\begin{IMPORTANT}
+There is a lot to do in this tutorial. Don't worry if you cannot finish everything
+within the time slot, but do allocate time if necessary to finish. Programming
+tutorials are not marked, but they are practice for the assignments.
+\end{IMPORTANT}
 
 
 \SECTION{Client Server}
@@ -159,9 +165,9 @@ itself, it will be able to send a request and get a reply. This is because the s
 \texttt{127.0.0.1} only works for programs on the same computer.
 
 2. Control-C the server and restart with the IP address of the computer it is running on:
-\CODELINE{python udpServer.py 10.1.1.217}
+\CODELINE{python udpServer.py 10.1.1.113}
 or
-\CODELINE{java UdpServer 10.1.1.217}
+\CODELINE{java UdpServer 10.1.1.113}
 
 Run the client again on the other computer, with the server IP address, and this time
 it should work.
@@ -182,7 +188,7 @@ IP address.
 \end{IMPORTANT}
 
 4. Swap the computer roles, with the server running on the former client computer and
-the client on what used to be the server. If they don't work, check the IP addreses
+the client on what used to be the server. If they don't work, check the IP addresses
 you are using as command line arguments.
 
 
@@ -212,23 +218,22 @@ limit inside the server program? Read the server code: how can this happen?
 2. Copy and send the very long request. Now what happens, and why?
 
 \begin{IMPORTANT}
-Ideally the maximum size of each request and reply should be part of the \NAME{protocol
+The maximum size of each request and reply should be part of the \NAME{protocol
 specification}, so everyone agrees on what the limits are and can write programs that
 interoperate. The programs may \NAME{negotiate} settings: \DQ{Can I send you 65535
 bytes?} \DQ{No, only 16384}.
 
-This tutorial is unfortunately more realistic: client and server programmers pick
-numbers that seem about right, and only discover problems when strange thngs start
-happening.
+This tutorial is more realistic: often client and server programmers pick
+numbers that seem about right, and only discover problems when strange things start
+happening. Don't do this.
 \end{IMPORTANT}
 
 3. Copy and send the 16 characters in French, and the 10 characters in Mandarin.
 What happens?
 
 \begin{IMPORTANT}
-Characters are not bytes. Older programming languages (and older programmers) assumed
-that one byte would be enough for a character, or maybe two. Both are wrong and you
-should allow up to 4 bytes (32 bits) per character.
+Characters are not bytes and strings are complicated. Text sent over the network
+or stored in files should always be UTF-8.
 \end{IMPORTANT}
 
 4. Control-C the server. Increase the server limit in the program code and run it
@@ -244,7 +249,7 @@ reply? Change back to UTF-8 afterwards.
 Modify the client and server programs to use a shared package that contains the
 maximum message size instead of having a separate limit within each program.
 
-\emph{Optional}: Have a single pair of \texttt{readRequest} and \texttt{sendReply}
+\emph{Optional}: Have a single pair of send and receive functions/methods
 in the shared package that are used by both the client and server.
 
 Modify the server program to shut down nicely on Control-C. (ie it should print out
