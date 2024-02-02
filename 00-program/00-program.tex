@@ -101,8 +101,8 @@ to \DQ{compile and run the program} without this much detail.
 
 This program expects you to type something and press Enter, which will then be printed
 back to the terminal. It will keep doing so until End Of File, which in a terminal is
-you typing \NAME{Control-D} or \NAME{Control-Z Enter} depending on your system. If you
-don't already know, find out which stops the program on your system.
+you typing \NAME{Control-D}, or \NAME{Control-Z} then \NAME{Enter}, depending on your system.
+If you don't already know, find out which stops the program on your system.
 
 The peasant program (Python or Java) has one optional command line argument.
 In the source code this is handled in \NAME{processArgs} and you can see the effect
@@ -139,8 +139,9 @@ or
 This program has new \NAME{chooseResponse} code that changes the output depending
 on the input. One special input will cause the program to crash, another will
 cause the program to loop forever. Read the code to find out what these strings
-are. Run the program a few times and try both values. (If you don't already know,
-you can stop a runaway program with \NAME{Control-C}.)
+are. Run the program a few times and try both values. If you don't already know,
+you can usually stop a runaway program with \NAME{Control-C}. (On MS Windows, first
+try \NAME{Control-C} and if that doesn't work, \NAME{Control-Pause/Break}).
 
 
 \SECTION{Inter Process Communication}
