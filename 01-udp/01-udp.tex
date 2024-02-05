@@ -30,7 +30,7 @@ In this tutorial you will
 \begin{IMPORTANT}
 There is a lot to do in this tutorial. Don't worry if you cannot finish everything
 within the time slot, but do allocate time if necessary to finish. Programming
-tutorials are not marked, but they are practice for the assignments.
+tutorials are not marked, but they are practise for the assignments.
 \end{IMPORTANT}
 
 
@@ -70,20 +70,27 @@ same server. Try typing different words in each client shell.
 \begin{IMPORTANT}
 If you study the logging messages in the server window, you should see a difference
 between those for the first run of the client program and those from the second.
-This will be explained in detail later.
+This will be explained in lectures.
 \end{IMPORTANT}
 
 The server program does not read from input, so won't respond to EOF. Instead use
-Control-C to stop it.
+Control-C to stop it. Try this \emph{while} a client is still running. What happens
+to the client? What do you see in WireShark?
+
+EOF all your clients, then run a client without any server. What happens and when?
 
 
 \SECTION{Reliability}
 
 This pair of programs are using UDP, \NAME{Unreliable Data Protocol}. Since real
 network errors are very rare when both programs are running on the same computer,
-the server program has been modified to make it misbehave on two special requests,
-\SQ{it} and \SQ{ni}. Read the server program code and find what each of these will
-do within \NAME{serverLoop}.
+we will modify the server program to make it misbehave on special requests,
+\DQ{it} and \DQ{ni}. If you're not sure how to start, the \NAME{knight} program
+from the previous tutorial has code you can use to start with.
+
+1. Modify the server program so that if the request is \DQ{it}, the server does
+not reply. (But it should print a log message to the terminal saying that it has
+received a special message.)
 
 \begin{IMPORTANT}
 For the next steps, try to predict what will happen before you actually type in any
@@ -91,24 +98,16 @@ requests. If your prediction is right, good. If your prediction is wrong but you
 can understand why, that's good too.
 \end{IMPORTANT}
 
-Make sure you have a server and client running in separate shells.
+Run the modified server, then a client. Type just \texttt{it} as the request. Wait
+several seconds (read the client program code to find out exactly how long).
 
-1. Type just \texttt{it} as the request. Wait several seconds. (Read the client program
-code to find out exactly how long.)
+2. Modify the server program so that if the request is \DQ{ni} it sends three replies,
+not one.
 
-2. Type three requests (Enter after each) \texttt{hello}, \texttt{ni}, \texttt{world}.
+Type a few requests (Enter after each) \texttt{hello}, \texttt{ni}, \texttt{world}.
 What happens?
 
 Type in three or four more words.
-
-EOF the client and run it again \DSH this is the easiest way to escape when
-a client and server are not synchronised.
-
-3. Control-C the \emph{server} program. Wait a few seconds. What happens to the client?
-
-Type a request in the client. What happens? What do you see in Wireshark?
-
-Still without a server, run the client program. Does it crash immediately?
 
 
 \SECTION{Networking}
@@ -142,7 +141,7 @@ with no easy solutions. Both computers on the same network is more likely to wor
 
 Pick one computer to run the server and one for the client. The client will need the IP
 address of the computer running the server. First verify that the client computer can
-connect over the network with the \NAME{ping} command:
+connect to the server computer over the network with the \NAME{ping} command:
 
 \begin{CODE}\begin{verbatim}
 /Users/hugh/Desktop% ping 10.1.1.113
@@ -152,9 +151,9 @@ PING 10.1.1.113 (10.1.1.113): 56 data bytes
 ^C
 \end{verbatim}\end{CODE}
 
-1. Run the server program on the \SQ{server} computer (in the example above, the computer
+1. Run the server program on the server computer (in the example above, the computer
 with IP address \texttt{10.1.1.113}) with no command line arguments.
-Run the client program on the other \SQ{client} computer with the IP address of the server
+Run the client program on the other computer with the IP address of the server
 as the command line argument:
 \CODELINE{python udpClient.py 10.1.1.113}
 or
@@ -220,10 +219,10 @@ limit inside the server program? Read the server code: how can this happen?
 \begin{IMPORTANT}
 The maximum size of each request and reply should be part of the \NAME{protocol
 specification}, so everyone agrees on what the limits are and can write programs that
-interoperate. The programs may \NAME{negotiate} settings: \DQ{Can I send you 65535
-bytes?} \DQ{No, only 16384}.
+interoperate. The programs may \NAME{negotiate} settings: \SQ{Can I send you 65535
+bytes?} \SQ{No, only 16384}.
 
-This tutorial is more realistic: often client and server programmers pick
+This tutorial is what happens more often: client and server programmers pick
 numbers that seem about right, and only discover problems when strange things start
 happening. Don't do this.
 \end{IMPORTANT}
@@ -240,7 +239,7 @@ or stored in files should always be UTF-8.
 again. Repeat until all the requests can be received without being truncated.
 
 
-\SECTION{Coding}
+\SECTION{More Coding}
 
 Change the client \NAME{sendRequest} to send a UTF-16 encoded string instead of the
 current UTF-8. \emph{Don't} change anything else. What happens to the request and
@@ -253,7 +252,7 @@ maximum message size instead of having a separate limit within each program.
 in the shared package that are used by both the client and server.
 
 \emph{Optional}: Modify the server program to shut down nicely on Control-C.
-(It should print out \DQ{Done.} in the log messages.)
+(It should close the socket and print something as a log messages.)
 
 
 \COPYRIGHT

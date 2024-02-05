@@ -40,17 +40,7 @@ def serverLoop(host, port):
     while True:
         try:
             message, sender = readRequest(sock)
-            if message == "it":
-                print("We refuse to reply")
-            elif message == "ni":
-                print("Sending multiple replies")
-                for i in range(0, 3):
-                    reply = "Ni!"
-                    sendReply(sock, reply, sender)
-            else:
-                reply = "ACK " + message
-                print("Server sending reply", reply)
-                sendReply(sock, reply, sender)
+            replyToMessage(sock, message, sender)
         except OSError:
             break
     print("Server close")
@@ -68,6 +58,13 @@ def readRequest(sock):
     inMessage = inData.decode('utf-8', 'backslashreplace')
     print("Server received from", sender, "request", inMessage)
     return inMessage, sender
+
+def replyToMessage(sock, message, sender):
+    """Generate reply to message"""
+    # TODO: change behaviour depending on message
+    reply = "ACK " + message
+    print("Server sending reply", reply)
+    sendReply(sock, reply, sender)
 
 def sendReply(sock, reply, sender):
     """Send complete reply to client"""

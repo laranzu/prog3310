@@ -42,7 +42,6 @@ public class UdpServer {
     {
         DatagramSocket  sock;
         SDU             request;
-        String          message, reply;
 
         // Create and Internet UDP socket and set the address and port that we read requests from
         sock = new DatagramSocket(new InetSocketAddress(host, port));
@@ -52,21 +51,7 @@ public class UdpServer {
         while (true) {
             try {
                 request = readRequest(sock);
-                message = request.text;
-                // Decide what to do
-                if (message.equals("it")) {
-                    System.out.println("We refuse to reply");
-                } else if (message.equals("ni")) {
-                    System.out.println("Sending multiple replies");
-                    for (int i = 0; i < 3; i += 1) {
-                        reply = "Ni!";
-                        sendReply(sock, reply, request.dgram.getSocketAddress());
-                    }
-                } else {
-                    reply = "ACK " + message;
-                    System.out.printf("Server sending reply %s\n", reply);
-                    sendReply(sock, reply, request.dgram.getSocketAddress());
-                }
+                replyToMessage(sock, request.text, request.dgram.getSocketAddress());
             } catch (IOException e) {
                 break;
             }
@@ -102,10 +87,23 @@ public class UdpServer {
         return result;
     }
 
+    /** Generate reply to message */
+
+    protected static void replyToMessage(DatagramSocket sock, String message, SocketAddress sender)
+        throws IOException
+    {
+        String reply;
+
+        // TODO: change behaviour depending on message
+        reply = "ACK " + message;
+        System.out.printf("Server sending reply %s\n", reply);
+        sendReply(sock, reply, sender);
+    }
+
 
     /** Send complete reply to client */
 
-    protected static void sendReply(DatagramSocket sock, String message, SocketAddress sender)
+    protected static void sendReply(DatagramSocket sock, String text, SocketAddress sender)
         throws UnsupportedEncodingException, IOException
     {
         byte[]          outData;
@@ -114,7 +112,7 @@ public class UdpServer {
         // UDP packets are raw bytes so text should be UTF-8, the "wire format".
         // Encoding is usually done just before sending so the rest of the program
         // doesn't need to worry about what packets look like.
-        outData = message.getBytes("UTF-8");
+        outData = text.getBytes("UTF-8");
         // Create a new packet, same address as original request
         reply = new DatagramPacket(outData, outData.length, sender);
         // and send
