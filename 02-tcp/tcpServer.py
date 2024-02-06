@@ -52,6 +52,7 @@ def clientLoop(host, port):
         # Each connection accepted creates a new socket for that
         # particular client. Use for requests and replies.
         serverLoop(client)
+        # We don't get back here until the client session ends
         #
     print("Close server socket")
     serverSock.close()
@@ -65,13 +66,17 @@ def serverLoop(sock):
             request = readLine(sock)
             if request is None:
                 break
-            writeLine(sock, "ACK: " + request)
+            handleRequest(sock, request)
         # Try not to crash if the client does something wrong
         except OSError as e:
             print(type(e).__name__, "in serverLoop", " ".join(e.args))
             break
     print("Close client socket")
     sock.close()
+
+def handleRequest(sock, message):
+    """Respond to one client request"""
+    writeLine(sock, "ACK: " + message)
 
 
 def processArgs(argv):
