@@ -26,12 +26,16 @@ servicePort = 3310
 
 def clientLoop(host, port):
     """Accept client connections on given host and port"""
-    # Create a TCP socket
+    # Create TCP socket
     serverSock = socket(AF_INET, SOCK_STREAM)
+    # Servers should set this option which allows them to be re-run immediately.
+    # If you don't, you may have to wait a few minutes before restarting the server.
+    serverSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     # Address and port clients will connect to
     serverSock.bind((host, port))
     # This is the limit on established TCP connections that have not yet
-    # been accepted. (Not the number of connections.) For now, it is magic.
+    # been accepted. (Not the number of connections.) A really busy server
+    # might need to increase this but for now, don't worry about it.
     serverSock.listen(5)
     print("Created server socket for", serverSock.getsockname()[0],
                                         serverSock.getsockname()[1])
@@ -40,7 +44,9 @@ def clientLoop(host, port):
         # we get connection requests from clients.
         try:
             client, clientAddr = serverSock.accept()
-        except OSError:
+        # If something goes wrong with the network, we will stop
+        except OSError as e:
+            print(type(e).__name__, "in clientLoop", " ".join(e.args))
             break
         print("Accepted client connection from", clientAddr)
         # Each connection accepted creates a new socket for that
@@ -55,10 +61,15 @@ def serverLoop(sock):
     # Read and respond until client shuts down the socket,
     # using shared line read/write code
     while True:
-        request = readLine(sock)
-        if request is None:
+        try:
+            request = readLine(sock)
+            if request is None:
+                break
+            writeLine(sock, "ACK: " + request)
+        # Try not to crash if the client does something wrong
+        except OSError as e:
+            print(type(e).__name__, "in serverLoop", " ".join(e.args))
             break
-        writeLine(sock, "ACK: " + request)
     print("Close client socket")
     sock.close()
 
