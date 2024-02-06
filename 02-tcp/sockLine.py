@@ -1,8 +1,8 @@
 
 """
     TCP utility code for ANU COMP3310.
-    Read and write lines of text over TCP socket, handling EOL
-    sequence and decoding/encoding UTF-8. Nothing very complex
+    Read and write lines of text over TCP socket, handling
+    EOL and decoding/encoding UTF-8. Nothing very complex
     but avoids copying and pasting over and over again.
 
     There is no limit on the size of a line.
@@ -12,18 +12,17 @@
 """
 
 import socket
-from socket import *
 
 def writeLine(sock, txt):
     """Write single line with LF"""
     txt += '\n'
-    # Use sendall rather than send because if txt is really really long,
-    # sendall will break into smaller chunks. send() does not
+    # Use sendall rather than send because if txt is really long,
+    # sendall will break into smaller chunks. send() does not.
     sock.sendall(txt.encode('utf-8'))
 
 def readLine(sock):
     """Read single line terminated by \n from sock"""
-    # Read array of bytes. Only convert to UTF-8 when we have entire line
+    # Read as bytes. Only convert to UTF-8 when we have entire line.
     inData = b''
     while True:
         ch = sock.recv(1)
@@ -31,7 +30,7 @@ def readLine(sock):
             # Socket closed
             break
         inData += ch
-        # This comparison always works with UTF-8 because low bytes
+        # This comparison always works with UTF-8 because high bytes
         # of multi byte characters have at least bit 7 set
         if ch == b'\n':
             break
