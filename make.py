@@ -38,7 +38,6 @@ if len(sys.argv) > 1:
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 
-##	TODO build web pages from templates
 
 ##	Create ZIP file
 

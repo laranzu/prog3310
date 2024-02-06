@@ -10,7 +10,7 @@
     Run with
         python udpServer.py [ IP addr ] [ port ]
 
-    Written by H Fisher, ANU, 2024
+    Written by H Fisher u9011925, ANU, 2024
     This code may be freely copied and modified
 """
 
