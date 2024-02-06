@@ -24,26 +24,43 @@ serviceHost = "0.0.0.0"
 servicePort = 3310
 
 
-def serverLoop(host, port):
-    """Run service on given host and port"""
+def clientLoop(host, port):
+    """Accept client connections on given host and port"""
     # Create a TCP socket
     serverSock = socket(AF_INET, SOCK_STREAM)
     # Address and port clients will connect to
     serverSock.bind((host, port))
-    # This is the limit on ESTABLISHED connections that have not yet been
-    # accepted. For now, it's magic you don't need to worry about.
+    # This is the limit on established TCP connections that have not yet
+    # been accepted. (Not the number of connections.) For now, it is magic.
     serverSock.listen(5)
     print("Created server socket for", serverSock.getsockname()[0],
                                         serverSock.getsockname()[1])
-    # And now read and respond forever
-    # while True:
-    #     try:
-    #         message, sender = readRequest(sock)
-    #         replyToMessage(sock, message, sender)
-    #     except OSError:
-    #         break
+    while True:
+        # A TCP server is different to UDP. Instead of packets,
+        # we get connection requests from clients.
+        try:
+            client, clientAddr = serverSock.accept()
+        except OSError:
+            break
+        print("Accepted client connection from", clientAddr)
+        # Each connection accepted creates a new socket for that
+        # particular client. Use for requests and replies.
+        serverLoop(client)
+        #
     print("Close server socket")
     serverSock.close()
+
+def serverLoop(sock):
+    """Echo service for a single client"""
+    # Read and respond until client shuts down the socket,
+    # using shared line read/write code
+    while True:
+        request = readLine(sock)
+        if request is None:
+            break
+        writeLine(sock, "ACK: " + request)
+    print("Close client socket")
+    sock.close()
 
 
 def processArgs(argv):
@@ -62,5 +79,5 @@ def processArgs(argv):
 
 if __name__ == "__main__":
     processArgs(sys.argv)
-    serverLoop(serviceHost, servicePort)
+    clientLoop(serviceHost, servicePort)
     print("Done.")
