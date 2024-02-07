@@ -22,12 +22,12 @@ In this tutorial you will
 
 \DOT Study how data is transmitted and received over TCP
 
-\DOT Try designing, and re-designing, a simple protocol
+\DOT Study and change a simple protocol
 
 
 This tutorial is very similar to the previous UDP client-server, so you should
-know what to do. Before studying anything in detail make sure everything is
-working. Run the server in one window, the client in another. Whatever
+know what to do. First make sure everything is
+working: run the server in one window, the client in another. Whatever
 you type in the client window will be sent to the server and echoed back. EOF
 in the client window to stop, Control-C for the server.
 
@@ -99,15 +99,72 @@ not the terminal.
 or
 \CODELINE{java TcpClient  < loremIpsum.txt}
 
+\begin{IMPORTANT}
+This is an example of \SQ{fuzzing}, sending unexpected input to a program
+and seeing what happens.
+\end{IMPORTANT}
 
-\SECTION{Optional}
+\STEP Using the \texttt{words.txt} file from the UDP tutorial, make sure
+your client and server can handle non-ASCII text.
+
+
+\SECTION{Protocol}
+
+\STEP
+In the \SQ{protocol} for this client server system a linefeed is added to
+each line when transmitted, but it isn't being removed when received. This
+makes it harder for either program to test if a line is  empty (\DQ{}) or
+has a particular value, and inserts blank lines into the log output.
+
+Modify the code for \texttt{readLine} in the shared library to remove the
+linefeed (and any extra spaces) from the text once received and decoded.
+(Hint for both Python and Java programmers: \texttt{trim}.)
+
+\begin{IMPORTANT}
+The general rule for layered network design is that any headers or trailers
+added to encapsulate data at one end should be removed by the equivalent
+layer at the other end. Here the LF is the protocol marker for a message
+boundary.
+\end{IMPORTANT}
+
+\STEP
+The client sends a BYE message when it shuts down. In the server, modify
+\texttt{serverLoop}
+so receiving this message exits the loop and closes the socket.
+
+\STEP
+Modify the server to send an extra empty line at the end of \texttt{handleRequest},
+and modify the client \texttt{readReply} to keep reading lines until it receives
+the empty line. (Which should not be logged.)
+
+Run the new client and server and verify that everything still works with
+simple one line messages and replies.
+
+\begin{IMPORTANT}
+When you add new features to a program, don't break what already works!
+\end{IMPORTANT}
+
+\STEP
+Now that the client can loop until an empty line, modify the server so
+that if the request is \DQ{it}, there is no reply, just the empty line.
+
+\STEP
+Modify the server so that if the request is \DQ{ni}, it sends back three
+lines. \emph{Optional}: send back a random number of lines.
+
+
+\SECTION{Experiments}
 
 The TCP server can echo the input from other programs, not just the client.
 Open a web browser and type \texttt{localhost:3310} as the URL.
 Or try \NAME{telnet} or \NAME{nc} as the client. 
 
-Rewrite the server with a client session class, so that each \texttt{serverLoop}
+\emph{Optional}: Rewrite the server with a client session class, so that
+each \texttt{serverLoop}
 could be run as a thread to handle multiple client connections in parallel.
+(You don't \emph{have} to actually make the server multithreaded, although
+this is a good way to learn about threads if you haven't done so before.)
+
 
 \COPYRIGHT
 
