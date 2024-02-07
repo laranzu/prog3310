@@ -53,7 +53,7 @@ def slowSend(sock, txt):
     data = txt.encode('utf-8')
     for i in range(0, len(data) - 1):
         sock.send(data[i:i+1])
-        # Without sleep, OS would probably buffer all the bytes internally
+        # Without this OS would probably buffer all the bytes internally
         # and send one packet, which is not what we want
         time.sleep(0.1)
 

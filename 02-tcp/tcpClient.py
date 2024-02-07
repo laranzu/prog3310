@@ -40,6 +40,7 @@ def inputLoop(host, port):
         sendRequest(sock, line)
         readReply(sock)
     print("Client close")
+    # Tell the server we are done
     writeLine(sock, "BYE")
     sock.close()
 

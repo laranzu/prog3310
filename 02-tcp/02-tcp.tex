@@ -18,11 +18,51 @@
 
 In this tutorial you will
 
-\DOT Compile and run client-server programs using TCP
-
-\DOT Study the differences between UDP and TCP server design
+\DOT Study the differences between UDP and TCP program design
 
 \DOT Study how data is transmitted and received over TCP
+
+
+This tutorial is very similar to the previous UDP client-server, so you should
+know what to do. Before studying anything in detail make sure everything is
+working. Run the server in one window, the client in another. Whatever
+you type in the client window will be sent to the server and echoed back. EOF
+in the client window to stop, Control-C for the server.
+
+For this tutorial you should have WireShark (or \texttt{tcpdump}) running
+on the loopback interface, port 3310.
+
+
+\SECTION{Program Code}
+
+1. The TCP client and server both use a shared package for reading and writing
+lines of text, \NAME{sockLine.py} or \NAME{SockLine.java}. Have a look at the
+code.
+
+Sending a line is easy: append a newline special character and then encode
+into UTF-8. It is only a couple of lines, but using a library means we cannot
+forget either step.
+
+Reading a line is very different. The UDP programs received packets, and each
+package was a single request or response. TCP hides the packets, so a TCP
+socket behaves like a sequential file of bytes. The library code reads one
+byte at a time, but this does not mean that every byte is a packet. WireShark
+will show you what is actually being sent.
+
+2. The TCP server code is structured very differently. A UDP server responds
+to client packets and does not really need any state. A TCP server receives
+connection requests from a client, and each connection is a \NAME{session}
+dedicated to that client.
+
+The TCP server now has two loops, one for clients and one for requests by a
+single client.
+
+
+\SECTION{Optional: other programs}
+
+The TCP server can echo the input from other programs, not just the client.
+Run the server and try \NAME{telnet} or \NAME{nc} as the client. Or you can open
+a web browser and type \texttt{localhost:3310} as the address to open.
 
 
 \COPYRIGHT
