@@ -79,7 +79,9 @@ def serverLoop(sock):
 
 def handleRequest(sock, message):
     """Respond to one client request"""
-    writeLine(sock, "ACK: " + message)
+    reply = "ACK: " + message
+    print("Server sending reply", reply)
+    writeLine(sock, reply)
 
 
 def processArgs(argv):
