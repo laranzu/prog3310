@@ -41,3 +41,19 @@ def readLine(sock):
     # Back slash replace won't raise exception on illegal char sequence
     txt = inData.decode('utf-8', 'backslashreplace')
     return txt
+
+
+## This is just to demonstrate packets vs streams. Don't use in assignments
+
+import time
+
+def slowSend(sock, txt):
+    """Send text byte by byte in tiny packets"""
+    txt += '\n'
+    data = txt.encode('utf-8')
+    for i in range(0, len(data) - 1):
+        sock.send(data[i:i+1])
+        # Without sleep, OS would probably buffer all the bytes internally
+        # and send one packet, which is not what we want
+        time.sleep(0.1)
+

@@ -16,6 +16,7 @@ import socket
 from socket import *
 
 # Shared by client and server
+import sockLine
 from sockLine import readLine, writeLine
 
 
@@ -46,7 +47,7 @@ def clientLoop(host, port):
             client, clientAddr = serverSock.accept()
         # If something goes wrong with the network, we will stop
         except OSError as e:
-            print(type(e).__name__, "in clientLoop", " ".join(e.args))
+            print(type(e).__name__, "in clientLoop", e.args)
             break
         print("Accepted client connection from", clientAddr)
         # Each connection accepted creates a new socket for that
@@ -66,10 +67,11 @@ def serverLoop(sock):
             request = readLine(sock)
             if request is None:
                 break
+            print("Server received", request)
             handleRequest(sock, request)
         # Try not to crash if the client does something wrong
         except OSError as e:
-            print(type(e).__name__, "in serverLoop", " ".join(e.args))
+            print(type(e).__name__, "in serverLoop", e.args)
             break
     print("Close client socket")
     sock.close()
