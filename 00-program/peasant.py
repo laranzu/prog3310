@@ -5,8 +5,9 @@
     This is the first of two programs. Run with
         python peasant.py
 
-    Written by H Fisher u9011925, ANU, 2024
-    This code may be freely copied and modified
+    Written by Hugh Fisher u9011925, ANU, 2024
+    Released under Creative Commons CC0 Public Domain Dedication
+    This code may be freely copied and modified for any purpose
 """
 
 import sys

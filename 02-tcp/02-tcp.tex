@@ -1,6 +1,6 @@
 
 %   COMP3310 TCP tutorial
-%   Written by H Fisher, ANU, 2024
+%   Written by Hugh Fisher, ANU, 2024
 %   Creative Commons CC-BY-4.0 license
 
 %   LaTeX markup for XeTeX with a standard texlive distribution
@@ -40,7 +40,7 @@ on the loopback interface, port 3310.
 Open all the source code files (for your preferred language) in your editor
 or IDE.
 
-The TCP client and server both use a shared package for reading and writing
+The TCP client and server both use a shared library for reading and writing
 lines of text, \NAME{sockLine.py} or \NAME{SockLine.java}. Have a look at the
 code.
 
@@ -66,7 +66,7 @@ dedicated to that client. The server now has two loops, one for client connectio
 and one for requests by a single client.
 
 
-\SECTION{UDP and TCP}
+\SECTION{Data Over TCP}
 
 In the UDP tutorial you could start a client with no server running. Try the
 same with the TCP client.
@@ -82,13 +82,29 @@ Reliability Engineering. Do \emph{not} use threads, timeouts, async\ldots
 in your assignments without first asking if you really need to.
 \end{IMPORTANT}
 
+1. Modify the server \texttt{handleRequest} code so that it uses the special
+\NAME{slowSend} in the socket line library instead of \texttt{writeLine}.
+With a new server running, try sending requests of varying length from the
+client. What does WireShark show? How many responses does the client receive?
+
+Control-C the server and change the code back to using \texttt{writeLine}.
+(If you don't, you will be waiting a very long time for the next step to
+complete.)
+
+2. The tutorial includes a text file \texttt{loremIpsum.txt} which is a
+single 16K long line of randomly generated words. Use this as a client
+request by running the client program with standard input from this file,
+not the terminal.
+\CODELINE{python tcpClient.py < loremIpsum.txt}
+or
+\CODELINE{java TcpClient  < loremIpsum.txt}
 
 
 \SECTION{Optional}
 
 The TCP server can echo the input from other programs, not just the client.
-Run the server and try \NAME{telnet} or \NAME{nc} as the client. Or you can open
-a web browser and type \texttt{localhost:3310} as the URL.
+Open a web browser and type \texttt{localhost:3310} as the URL.
+Or try \NAME{telnet} or \NAME{nc} as the client. 
 
 Rewrite the server with a client session class, so that each \texttt{serverLoop}
 could be run as a thread to handle multiple client connections in parallel.
