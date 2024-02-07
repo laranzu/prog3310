@@ -104,9 +104,6 @@ This is an example of \SQ{fuzzing}, sending unexpected input to a program
 and seeing what happens.
 \end{IMPORTANT}
 
-\STEP Using the \texttt{words.txt} file from the UDP tutorial, make sure
-your client and server can handle non-ASCII text.
-
 
 \SECTION{Protocol}
 
@@ -118,7 +115,6 @@ has a particular value, and inserts blank lines into the log output.
 
 Modify the code for \texttt{readLine} in the shared library to remove the
 linefeed (and any extra spaces) from the text once received and decoded.
-(Hint for both Python and Java programmers: \texttt{trim}.)
 
 \begin{IMPORTANT}
 The general rule for layered network design is that any headers or trailers
@@ -154,6 +150,9 @@ lines. \emph{Optional}: send back a random number of lines.
 
 
 \SECTION{Experiments}
+
+\STEP Using the \texttt{words.txt} file from the UDP tutorial, make sure
+your client and server can handle non-ASCII text.
 
 The TCP server can echo the input from other programs, not just the client.
 Open a web browser and type \texttt{localhost:3310} as the URL.
