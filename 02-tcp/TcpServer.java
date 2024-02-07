@@ -62,6 +62,7 @@ public class TcpServer {
     }
 
     /** Echo service for a single client */
+
     protected static void serverLoop(Socket sock)
         throws IOException
     {
@@ -75,7 +76,7 @@ public class TcpServer {
                 if (request == null)
                     break;
                 System.out.printf("Server received %s", request);
-                //handleRequest(sock, request);
+                handleRequest(sock, request);
             } catch (IOException e) {
                 // Try not to crash if the client does something wrong
                 System.out.printf("%s in serverLoop\n", e.toString());
@@ -85,6 +86,17 @@ public class TcpServer {
         System.out.println("Close client socket");
         sock.close();
     }
+
+    /** Respond to one client request */
+
+    protected static void handleRequest(Socket sock, String message)
+        throws IOException
+    {
+        String reply = "ACK: " + message;
+        System.out.printf("Server sending reply %s\n", reply);
+        SockLine.writeLine(sock, reply);
+    }
+
 
     /** Handle command line argument. */
 
