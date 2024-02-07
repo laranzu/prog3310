@@ -88,7 +88,7 @@ we will modify the server program to make it misbehave on special requests,
 \DQ{it} and \DQ{ni}. If you're not sure how to start, the \NAME{knight} program
 from the previous tutorial has code you can use to start with.
 
-1. Modify the server program so that if the request is \DQ{it}, the server does
+\STEP Modify the server program so that if the request is \DQ{it}, the server does
 not reply. (But it should print a log message to the terminal saying that it has
 received a special message.)
 
@@ -101,7 +101,7 @@ can understand why, that's good too.
 Run the modified server, then a client. Type just \texttt{it} as the request. Wait
 several seconds (read the client program code to find out exactly how long).
 
-2. Modify the server program so that if the request is \DQ{ni} it sends three replies,
+\STEP Modify the server program so that if the request is \DQ{ni} it sends three replies,
 not one.
 
 Type a few requests (Enter after each) \texttt{hello}, \texttt{ni}, \texttt{world}.
@@ -151,7 +151,7 @@ PING 10.1.1.113 (10.1.1.113): 56 data bytes
 ^C
 \end{verbatim}\end{CODE}
 
-1. Run the server program on the server computer (in the example above, the computer
+\STEP Run the server program on the server computer (in the example above, the computer
 with IP address \texttt{10.1.1.113}) with no command line arguments.
 Run the client program on the other computer with the IP address of the server
 as the command line argument:
@@ -163,7 +163,7 @@ When you type a request, the client will crash! But if you run a client on the s
 itself, it will be able to send a request and get a reply. This is because the server IP address
 \texttt{127.0.0.1} only works for programs on the same computer.
 
-2. Control-C the server and restart with the IP address of the computer it is running on:
+\STEP Control-C the server and restart with the IP address of the computer it is running on:
 \CODELINE{python udpServer.py 10.1.1.113}
 or
 \CODELINE{java UdpServer 10.1.1.113}
@@ -171,7 +171,7 @@ or
 Run the client again on the other computer, with the server IP address, and this time
 it should work.
 
-3. Control-C the server and start it again with this special address:
+\STEP Control-C the server and start it again with this special address:
 \CODELINE{python udpServer.py 0.0.0.0}
 or
 \CODELINE{java UdpServer 0.0.0.0}
@@ -186,7 +186,7 @@ the server program to be moved from computer to computer without needing to chan
 IP address.
 \end{IMPORTANT}
 
-4. Swap the computer roles, with the server running on the former client computer and
+\STEP Swap the computer roles, with the server running on the former client computer and
 the client on what used to be the server. If they don't work, check the IP addresses
 you are using as command line arguments.
 
@@ -208,13 +208,13 @@ computers.)
 From the editor with \texttt{words.txt} try copying \texttt{Test} and pasting into
 the client terminal. Press Enter to send the request as normal.
 
-1. Copy the long request (\SQ{extraterrestrial}) into the client. How many characters
+\STEP Copy the long request (\SQ{extraterrestrial}) into the client. How many characters
 are you sending?
 
 How long is the reply from the server? Is this greater than the \texttt{MSG\_SIZE}
 limit inside the server program? Read the server code: how can this happen?
 
-2. Copy and send the very long request. Now what happens, and why?
+\STEP Copy and send the very long request. Now what happens, and why?
 
 \begin{IMPORTANT}
 The maximum size of each request and reply should be part of the \NAME{protocol
@@ -227,7 +227,7 @@ numbers that seem about right, and only discover problems when strange things st
 happening. Don't do this.
 \end{IMPORTANT}
 
-3. Copy and send the 16 characters in French, and the 10 characters in Mandarin.
+\STEP Copy and send the 16 characters in French, and the 10 characters in Mandarin.
 What happens?
 
 \begin{IMPORTANT}
@@ -235,7 +235,7 @@ Characters are not bytes and strings are complicated. Text sent over the network
 or stored in files should always be UTF-8.
 \end{IMPORTANT}
 
-4. Control-C the server. Increase the server limit in the program code and run it
+\STEP Control-C the server. Increase the server limit in the program code and run it
 again. Repeat until all the requests can be received without being truncated.
 
 

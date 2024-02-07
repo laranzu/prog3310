@@ -82,7 +82,7 @@ Reliability Engineering. Do \emph{not} use threads, timeouts, async\ldots
 in your assignments without first asking if you really need to.
 \end{IMPORTANT}
 
-1. Modify the server \texttt{handleRequest} code so that it uses the special
+\STEP Modify the server \texttt{handleRequest} code so that it uses the special
 \NAME{slowSend} in the socket line library instead of \texttt{writeLine}.
 With a new server running, try sending requests of varying length from the
 client. What does WireShark show? How many responses does the client receive?
@@ -91,7 +91,7 @@ Control-C the server and change the code back to using \texttt{writeLine}.
 (If you don't, you will be waiting a very long time for the next step to
 complete.)
 
-2. The tutorial includes a text file \texttt{loremIpsum.txt} which is a
+\STEP The tutorial includes a text file \texttt{loremIpsum.txt} which is a
 single 16K long line of randomly generated words. Use this as a client
 request by running the client program with standard input from this file,
 not the terminal.

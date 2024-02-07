@@ -111,3 +111,10 @@
 
 % Bullet mark used outside list
 \newcommand{\DOT} {\bullet\xspace}
+
+% Introduce a new step in tutorial exercise
+\newcounter{tutestep}
+\newcommand{\STEP} {%
+        \addtocounter{tutestep}{1}%
+        \thetutestep.\xspace%
+}
