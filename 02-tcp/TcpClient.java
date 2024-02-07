@@ -1,5 +1,5 @@
 
-/** Python TCP echo client program for ANU COMP3310.
+/** TCP echo client program for ANU COMP3310.
  *
  *  Run with
  *      java TcpClient [ IP addr ] [ port ]
@@ -25,7 +25,7 @@ public class TcpClient {
     protected static void inputLoop(String host, int port)
         throws IOException
     {
-        Socket      sock;
+        Socket              sock;
         BufferedReader      input;
         String              line, reply;
         InetSocketAddress   remote;
@@ -33,7 +33,7 @@ public class TcpClient {
         // Create TCP socket, connected to a single host
         sock = new Socket(host, port);
         remote = (InetSocketAddress) sock.getRemoteSocketAddress();
-        System.out.printf("CClient connected to %s %d\n",
+        System.out.printf("Client connected to %s %d\n",
                             remote.getAddress().getHostAddress(), remote.getPort());
         // Keep reading lines and sending them
         input = new BufferedReader(new InputStreamReader(System.in));

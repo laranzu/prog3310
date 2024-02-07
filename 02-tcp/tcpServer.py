@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-    Python TCP echo server program for ANU COMP3310.
+    TCP echo server program for ANU COMP3310.
 
     Run with
         python tcpServer.py [ IP addr ] [ port ]

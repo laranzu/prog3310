@@ -2,7 +2,7 @@
 /** TCP echo server program for ANU COMP3310.
  *
  *  Run with
- *      java TcpServer [ IP addr ] [ port ]
+ *      java TcpServer [ port ]
  *
  *  Written by Hugh Fisher u9011925, ANU, 2024
  *  Released under Creative Commons CC0 Public Domain Dedication
@@ -16,24 +16,23 @@ import java.net.*;
 
 public class TcpServer {
 
-    // IP address and port
-    static String   serviceHost = "0.0.0.0";
+    // IP port only, we are using Java built in server socket class
     static int      servicePort = 3310;
 
-    /** Accept client connections on given host and port */
+    /** Accept client connections on given port */
 
-    protected static void clientLoop(String host, int port)
-        throws UnknownHostException, IOException, SocketException
+    protected static void clientLoop(int port)
+        throws IOException, SocketException
     {
         ServerSocket        serverSock;
         Socket              client;
         InetSocketAddress   remote;
 
-        // Create TCP socket, for server bound to given port and host.
-        // Second arg is the limit on established TCP connections that have not yet
-        // been accepted. (Not the number of connections.) A really busy server
-        // might need to increase this but for now, don't worry about it.
-        serverSock = new ServerSocket(port, 5, InetAddress.getByName(host));
+        // Create TCP socket, for server bound to given port on 0.0.0.0
+        // and with whatever listen value seems right.
+        serverSock = new ServerSocket(port);
+        //  If you really want to specify hostname/interface and listen,
+        //  serverSock = new ServerSocket(port, 5, InetAddress.getByName(serviceHost))
         // Servers should set this option which allows them to be re-run immediately.
         // If you don't, you may have to wait a few minutes before restarting the server.
         serverSock.setReuseAddress(true);
@@ -47,7 +46,7 @@ public class TcpServer {
                 client = serverSock.accept();
             } catch (IOException e) {
                 // If something goes wrong with the network, we will stop
-                System.out.println(e.toString());
+                System.out.printf("%s in clientLoop\n", e.toString());
                 break;
             }
             remote = (InetSocketAddress) client.getRemoteSocketAddress();
@@ -55,26 +54,45 @@ public class TcpServer {
                             remote.getAddress().getHostAddress(), remote.getPort());
             // Each connection accepted creates a new socket for that
             // particular client. Use for requests and replies.
-            //serverLoop(client);
+            serverLoop(client);
             // We don't get back here until the client session ends
-            client.close();
         }
         System.out.println("Close server socket");
         serverSock.close();
     }
 
+    /** Echo service for a single client */
+    protected static void serverLoop(Socket sock)
+        throws IOException
+    {
+        String request;
 
-    /** Handle command line arguments. */
+        // Read and respond until client shuts down the socket,
+        // using shared line read/write code
+        while (true) {
+            try {
+                request = SockLine.readLine(sock);
+                if (request == null)
+                    break;
+                System.out.printf("Server received %s", request);
+                //handleRequest(sock, request);
+            } catch (IOException e) {
+                // Try not to crash if the client does something wrong
+                System.out.printf("%s in serverLoop\n", e.toString());
+                break;
+            }
+        }
+        System.out.println("Close client socket");
+        sock.close();
+    }
+
+    /** Handle command line argument. */
 
     protected static void processArgs(String[] args)
     {
-        //  This program has only two CLI arguments, and we know the order.
-        //  For any program with more than two args, use a loop or package.
+        //  Only port number for Java server.
         if (args.length > 0) {
-            serviceHost = args[0];
-            if (args.length > 1) {
-                servicePort = Integer.parseInt(args[1]);
-            }
+            servicePort = Integer.parseInt(args[1]);
         }
     }
 
@@ -82,7 +100,7 @@ public class TcpServer {
     {
         try {
             processArgs(args);
-            clientLoop(serviceHost, servicePort);
+            clientLoop(servicePort);
             System.out.println("Done.");
         } catch (Exception e) {
             System.out.println(e.toString());

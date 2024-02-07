@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-    Python TCP echo client program for ANU COMP3310.
+    TCP echo client program for ANU COMP3310.
 
     Run with
         python tcpClient.py [ IP addr ] [ port ]
