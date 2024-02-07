@@ -22,6 +22,8 @@ In this tutorial you will
 
 \DOT Study how data is transmitted and received over TCP
 
+\DOT Try designing, and re-designing, a simple protocol
+
 
 This tutorial is very similar to the previous UDP client-server, so you should
 know what to do. Before studying anything in detail make sure everything is
@@ -33,9 +35,12 @@ For this tutorial you should have WireShark (or \texttt{tcpdump}) running
 on the loopback interface, port 3310.
 
 
-\SECTION{Program Code}
+\SECTION{Program Design}
 
-1. The TCP client and server both use a shared package for reading and writing
+Open all the source code files (for your preferred language) in your editor
+or IDE.
+
+The TCP client and server both use a shared package for reading and writing
 lines of text, \NAME{sockLine.py} or \NAME{SockLine.java}. Have a look at the
 code.
 
@@ -49,21 +54,44 @@ socket behaves like a sequential file of bytes. The library code reads one
 byte at a time, but this does not mean that every byte is a packet. WireShark
 will show you what is actually being sent.
 
-2. The TCP server code is structured very differently. A UDP server responds
+The TCP client uses the shared library, so the code for reading and writing
+is shorter. One difference is that the client sends a final message on EOF:
+this is a simple example of \NAME{protocol} design so the server can tell
+whether a client deliberately ended the session or just crashed.
+
+The TCP server code is structured very differently. A UDP server responds
 to client packets and does not really need any state. A TCP server receives
 connection requests from a client, and each connection is a \NAME{session}
-dedicated to that client.
-
-The TCP server now has two loops, one for clients and one for requests by a
-single client.
+dedicated to that client. The server now has two loops, one for client connections
+and one for requests by a single client.
 
 
-\SECTION{Optional: other programs}
+\SECTION{UDP and TCP}
+
+In the UDP tutorial you could start a client with no server running. Try the
+same with the TCP client.
+
+Two UDP clients could run at the same time (in different terminal windows),
+both sending requests to a single server. Try the same with the TCP server
+and two clients. What happens?
+
+\begin{IMPORTANT}
+A real world server that only one person can use at a time would not be very
+useful, but in this course we are studying computer networks, not Site
+Reliability Engineering. Do \emph{not} use threads, timeouts, async\ldots
+in your assignments without first asking if you really need to.
+\end{IMPORTANT}
+
+
+
+\SECTION{Optional}
 
 The TCP server can echo the input from other programs, not just the client.
 Run the server and try \NAME{telnet} or \NAME{nc} as the client. Or you can open
-a web browser and type \texttt{localhost:3310} as the address to open.
+a web browser and type \texttt{localhost:3310} as the URL.
 
+Rewrite the server with a client session class, so that each \texttt{serverLoop}
+could be run as a thread to handle multiple client connections in parallel.
 
 \COPYRIGHT
 
