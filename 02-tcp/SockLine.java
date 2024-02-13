@@ -57,4 +57,32 @@ class SockLine {
         return txt;
     }
 
+
+/****   This is just to demonstrate packets vs streams. Don't use in assignments    ****/
+
+
+    /** Send text byte by byte in tiny packets */
+
+    public static void slowSend(Socket sock, String txt)
+        throws IOException
+    {
+        OutputStream out;
+        byte[] data;
+
+        txt = txt + "\n";
+        out = sock.getOutputStream();
+        data = txt.getBytes("UTF-8");
+        for (byte b : data) {
+            out.write(b);
+            // Without this OS would probably buffer all the bytes internally
+            // and send one packet, which is not what we want
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                // Shut up Java compiler, we don't care
+                System.out.println("InterruptedException in slowSend??");
+            }
+        }
+    }
+
 }
