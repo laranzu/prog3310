@@ -1,0 +1,43 @@
+
+%   COMP3310 crypto tutorial
+%   Written by Hugh Fisher, ANU, 2024
+%   Creative Commons CC-BY-4.0 license
+
+%   LaTeX markup for XeTeX with a standard texlive distribution
+%   Command to build:
+%       xelatex 10-crypto.tex
+
+\input{../common/formatting}
+
+\begin{document}
+
+\TITLE{Signatures and Encryption}
+
+
+\MINOR{Outline}
+
+In this tutorial you will
+
+\DOT Check the cryptographic signatures of files
+
+
+
+\SECTION{Cryptographic Signatures}
+
+\begin{IMPORTANT}
+A real world server that only one person can use at a time would not be very
+useful, but in this course we are studying computer networks, not Site
+Reliability Engineering. Do \emph{not} use threads, timeouts, async\ldots
+in your assignments without first asking if you really need to.
+\end{IMPORTANT}
+
+\STEP Modify the server \texttt{handleRequest} code so that it uses the special
+\NAME{slowSend} in the socket line library instead of \texttt{writeLine}.
+With a new server running, try sending requests of varying length from the
+client. What does WireShark show? How many responses does the client receive?
+
+
+
+\COPYRIGHT
+
+\end{document}
