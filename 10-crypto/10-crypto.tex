@@ -21,22 +21,67 @@ In this tutorial you will
 \DOT Check the cryptographic signatures of files
 
 
-
 \SECTION{Cryptographic Signatures}
 
+\STEP The first program to look at is \NAME{hashSig.py} or \NAME{HashSig.java}
+which calculates a \emph{signature} or \emph{digest} for a single file. We
+will start by running it on the source of the program itself. Run the Python
+version \texttt{python hashSig.py hashSig.py} or compile the Java version and
+then run \texttt{java HashSig HashSig.java}. The program will print out a
+string of hex digits representing a 128 bit number.
+
+Open the source code in your favourite text editor. Change one digit in the
+\SQ{2024} date given in the header comment (and save). Run the program again:
+how many digits change in the printed signature?
+
+Within the program code find the \texttt{hash} code. This is typical of how a
+checksum or signature is calculated: first the calculation algorithm is chosen and
+initialised, then the \SQ{data} is fed through the calculation byte by byte.
+The final result is always a fixed sized number, no matter how few or how
+many bytes of data are given.
+
+If the command line argument is \texttt{-list} rather than a file name, the
+program prints out all the different cryptographic signature algorithms
+available on your computer. Try this.
+
+Run the program on the source code again, but this time with a second command
+line argument \texttt{SHA1}. How many bits are there in this signature?
+
+\STEP Signatures can be used to verify that a copy of a file (usually a download)
+has not been tampered with. For this tutorial we will look at the site
+
+\texttt{https://openssl.org/source/}
+
+The file we are interested in is \texttt{openssl-3.30.tar.gz} but \textbf{don't}
+download it straight away. Ask your tutor for a copy of the file, or for where
+a copy of the file is stored on the CECC lab computers.
+
+Next to the file name are signatures, at time of writing SHA256, PGP, and SHA1.
+You \textbf{should} download the two SHA signatures, each of which is a very
+short text file.
+
+Once you have your own copy of \texttt{openssl-3.30.tar.gz}, run the hash
+program on it with one of the SHA signature algorithms. Compare the printed
+result to the downloaded signature file. Do they match?
+
+If someone can break into the OpenSSL web site and upload their own copy of
+the program, can you trust the signature?
+
+
+
 \begin{IMPORTANT}
-A real world server that only one person can use at a time would not be very
-useful, but in this course we are studying computer networks, not Site
-Reliability Engineering. Do \emph{not} use threads, timeouts, async\ldots
-in your assignments without first asking if you really need to.
+This tutorial includes simple code that implements some cryptographic and
+"security" procedures. Can you use this code for your own programs?
+
+The answer is\ldots maybe? Writing secure network programs is important
+and the code here shows you how to start. On the other hand, this code
+was not written by a security expert so is not efficient or guaranteed
+to work properly.
+On the third hand, the general state of Internet security is so awful
+that copying the code here probably can't make things worse.
+
+TODO recommend a CECC course
 \end{IMPORTANT}
-
-\STEP Modify the server \texttt{handleRequest} code so that it uses the special
-\NAME{slowSend} in the socket line library instead of \texttt{writeLine}.
-With a new server running, try sending requests of varying length from the
-client. What does WireShark show? How many responses does the client receive?
-
-
 
 \COPYRIGHT
 

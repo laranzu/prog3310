@@ -39,10 +39,17 @@ def available():
     print("Algorithm names that work on this system")
     print(sorted(algos))
 
+def reminder():
+    print("Needs command line arguments")
+    print("hashSig.py filename [ algorithm ]")
+    print("hashSig.py -list")
+
 ##
 
 if __name__ == "__main__":
-    if sys.argv[1] == "-list":
+    if len(sys.argv) < 2 or len(sys.argv) > 3:
+        reminder()
+    elif sys.argv[1] == "-list":
         available()
     else:
         infile = sys.argv[1]

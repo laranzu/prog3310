@@ -72,10 +72,19 @@ public class HashSig {
         System.out.println(algos);
     }
 
+    protected static void reminder()
+    {
+        System.out.println("Needs command line arguments");
+        System.out.println("HashSig filename [ algorithm ]");
+        System.out.println("HashSig -list");
+    }
+
     public static void main(String[] args)
     {
         try {
-            if (args[0].equals("-list")) {
+            if (args.length == 0 || args.length > 2) {
+                reminder();
+            } else if (args[0].equals("-list")) {
                 available();
             } else {
                 fileName = args[0];
