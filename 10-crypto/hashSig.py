@@ -37,8 +37,7 @@ def available():
     """Print list of hash algorithms Python can find"""
     algos = hashlib.algorithms_available
     print("Algorithm names that work on this system")
-    for a in sorted(algos):
-        print(a)
+    print(sorted(algos))
 
 ##
 
