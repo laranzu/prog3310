@@ -20,6 +20,8 @@ In this tutorial you will
 
 \DOT Check the cryptographic signatures of files
 
+\DOT Find how many cryptographic certificates your computer has
+
 
 \SECTION{Cryptographic Signatures}
 
@@ -42,10 +44,10 @@ many bytes of data are given.
 
 If the command line argument is \texttt{-list} rather than a file name, the
 program prints out all the different cryptographic signature algorithms
-available on your computer. Try this.
+available on your computer. Do this.
 
 Run the program on the source code again, but this time with a second command
-line argument \texttt{SHA1}. How many bits are there in this signature?
+line argument for example \texttt{SHA1}. How many bits are there in this signature?
 
 \STEP Signatures can be used to verify that a copy of a file (usually a download)
 has not been tampered with. For this tutorial we will look at the site
@@ -68,6 +70,27 @@ If someone can break into the OpenSSL web site and upload their own copy of
 the program, can you trust the signature?
 
 
+\SECTION{Certificates}
+
+Web server security (and other applications) depends on certificates and
+Certfication Authorities. Program \NAME{showCerts.py} or \NAME{ShowCerts.java},
+no command line arguments, prints out the certificates on the host.
+Do this, and be prepared to scroll back up to see them all: a typical computer
+has fifty to over a hundred.
+
+The command line option \texttt{-v} will print out more details about each
+certificate instead of just a name. Do this.
+
+\textbf{Don't Panic}. We are not going to study all these fields in detail,
+and you don't have to remember what each one is for. The lesson to learn
+is that setting up a world wide system for secure network communication is
+complicated.
+
+If you decide you do want to learn more about how all this works, CECC
+has a course for you: TODO SECURITY COURSE NAME.
+
+
+\SECTION{Network security programming}
 
 \begin{IMPORTANT}
 This tutorial includes simple code that implements some cryptographic and
@@ -75,12 +98,10 @@ This tutorial includes simple code that implements some cryptographic and
 
 The answer is\ldots maybe? Writing secure network programs is important
 and the code here shows you how to start. On the other hand, this code
-was not written by a security expert so is not efficient or guaranteed
-to work properly.
+was not written by a security expert so is not efficient nor guaranteed
+to be complete.
 On the third hand, the general state of Internet security is so awful
 that copying the code here probably can't make things worse.
-
-TODO recommend a CECC course
 \end{IMPORTANT}
 
 \COPYRIGHT

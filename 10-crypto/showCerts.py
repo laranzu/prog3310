@@ -23,27 +23,23 @@ import ssl
 
 def showCertificates(verbose):
     """Print out what Python knows about SSL certificates"""
-    # Dir where certs live?
-    print("SSL certificate dir")
-    paths = ssl.get_default_verify_paths()
-    print(paths.capath)
-    print()
-    # Certificates?
     ctx = ssl.create_default_context()
     ctx.load_default_certs()
     loadedCerts = ctx.get_ca_certs(False)
     print("Loaded {} certificates".format(len(loadedCerts)))
     for cert in loadedCerts:
         if verbose:
-            # Easy
+            # Easy, get Python to print everything
             pprint(cert)
             print()
         else:
             # A certificate is a deeply nested and inconsistently ordered
-            # tuple of names and values tuples. Converting to a dict makes
-            # it easier to test if something exists or not
+            # dict of tuples of names and values tuples. Converting tuple
+            # to dict makes it easier to test if something exists or not
             subject = cert['subject']
+            # Discovered that not all the tuples are key-value pairs.
             subject = dict([e[0] for e in subject if isinstance(e, tuple)])
+            # Most certs have a common name, but not all of them
             for k in ('commonName', 'organizationName'):
                 if k in subject:
                     print(subject[k])
