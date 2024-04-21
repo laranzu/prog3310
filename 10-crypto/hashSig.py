@@ -9,6 +9,10 @@
     or
         python hashSig.py -list
 
+    Most computers have some kind of utility program(s) that
+    do the same thing but better. For teaching it is nice to
+    have a short cross-platform example in a language more
+    students are familiar with.
     Written by Hugh Fisher u9011925, ANU, 2024
     Demonstration code for COMP3310
 """
