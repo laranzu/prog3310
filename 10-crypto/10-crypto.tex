@@ -22,6 +22,8 @@ In this tutorial you will
 
 \DOT Find how many certificates your computer has
 
+\DOT Study a simple program using an encrypted socket
+
 
 \SECTION{Cryptographic Signatures}
 
@@ -42,8 +44,8 @@ initialised, then the \SQ{data} is fed through the calculation byte by byte.
 The final result is always a fixed sized number, no matter how few or how
 many bytes of data are given.
 
-If the command line argument is \texttt{-list} rather than a file name, the
-program prints out all the different cryptographic signature algorithms
+\STEP If the command line argument is \texttt{-list} rather than a file name,
+the program prints out all the different cryptographic signature algorithms
 available on your computer. Do this.
 
 Run the program on the source code again, but this time with a second command
@@ -51,8 +53,7 @@ line argument for example \texttt{SHA1}. How many bits are there in this signatu
 
 \STEP Signatures can be used to verify that a copy of a file (usually a download)
 has not been tampered with. For this tutorial we will look at the site
-
-\texttt{https://openssl.org/source/}
+\CODELINE{https://openssl.org/source/}
 
 The file we are interested in is \texttt{openssl-3.30.tar.gz} but \textbf{don't}
 download it straight away. Ask your tutor for a copy of the file, or for where
@@ -72,14 +73,14 @@ the program, can you trust the signature?
 
 \SECTION{Certificates}
 
-Web server security (and other applications) depends on certificates and
-Certfication Authorities. Program \NAME{showCerts.py},
+\STEP Web server security (and other applications) depends on certificates
+and Certfication Authorities. Program \NAME{showCerts.py},
 no command line arguments, prints out the certificates on the host.
 Do this, and be prepared to scroll back up to see them all: a typical computer
 has fifty to over a hundred.
 
-The command line option \texttt{-v} will print out more details about each
-certificate instead of just a name. Do this.
+\STEP The command line option \texttt{-v} will print out more details about
+each certificate instead of just a name. Do this.
 
 \textbf{Don't Panic}. We are not going to study all these fields in detail,
 and you don't have to remember what each one is for. The lesson to learn
@@ -94,19 +95,78 @@ If you decide you do want to learn more about how all this works, CECC
 has a course for you: TODO SECURITY COURSE NAME.
 
 
-\SECTION{Network security programming}
+\SECTION{Secure sockets}
 
-\begin{IMPORTANT}
-This tutorial includes simple code that implements some cryptographic and
-"security" procedures. Can you use this code for your own programs?
+Here we will be using WireShark to watch an encrypted socket connection
+to the ANU web site. Start WireShark, and enter the filter
+\CODELINE{port 443 and host www.anu.edu.au}
+before capturing the external Internet interface of your computer. (Not the
+loopback.) Port 443 is for https, HTTP secure.
 
-The answer is\ldots maybe? Writing secure network programs is important
-and the code here shows you how to start. On the other hand, this code
-was not written by a security expert so is not efficient nor guaranteed
-to be complete.
-On the third hand, the general state of Internet security is so awful
-that copying the code here probably can't make things worse.
-\end{IMPORTANT}
+\STEP The program for this section is \NAME{sslClient.py} or \NAME{SSLClient.java}.
+
+Have a quick look at the source code. This program is similar to the
+\texttt{TCP Client}
+tutorial exercise: it reads input lines, sends them to a server, and reads and
+prints any response. The most important new code is \texttt{openSSL}, which
+creates an encrypted socket connection to the server.
+
+Run the program without any arguments, which will connect to the ANU web server.
+In WireShark you should see a standard TCP socket
+\texttt{SYN SYN ACK} triple handshake.
+Next the client and server negotiate the encrypted connection, with
+\texttt{Client Hello} and \texttt{Server Hello} packets and a few more.
+
+After creating the secure socket the program prints out some connection details.
+Who issued the certificate for the ANU web server? When will it expire?
+
+The program now waits for your input to send. Try
+\begin{CODE}\begin{verbatim}
+    GET / HTTP/1.1
+    Host: www.anu.edu.au
+    
+\end{verbatim}\end{CODE}
+
+(Don't forget the blank line to finish.)
+Assuming your request is correct, the server will reply with the HTML for a web
+page. Click on a few packets in Wireshark: your request and the reply, although
+originally text, are encrypted as binary data and cannot be read.
+
+Now go back to the source code.
+
+The new \texttt{openSSL} starts by creating a standard socket. It then
+creates a secure \emph{context} that manages an SSL (or TLS) encrypted connection
+and a secure socket that is \DQ{wrapped} around the underlying TCP connection.
+And finally there is the \emph{handshake} where the client and server agree
+on what cryptographic algorithm and keys to use.
+
+\emph{The rest of the program does not need to change.} A secure socket implements
+the same methods as before, but now data is encrypted before being sent and
+decrypted when received.
+
+(Actually there are some differences: for instance a half shutdown on a secure
+socket will break things. But sending and receiving, the common case, just works.)
+
+The program can be given a hostname on the command line for connecting to
+different web servers. Try a few other sites and see if they use different
+encryption algorithms.
+
+Secure network programming is both complicated and simple. As the certificates
+program shows, there are a lot of parts involved that all need to work together.
+As the secure socket program shows, it is not very difficult to create a more
+secure network connection when the underlying system has these parts.
+
+% \SECTION{Network security programming}
+
+% This tutorial includes simple code that implements some cryptographic and
+% "security" procedures. Can you use this code for your own programs?
+
+% The answer is\ldots maybe? Writing secure network programs is important
+% and the code here shows you how to start. On the other hand, this code
+% was not written by a security expert so is not efficient nor guaranteed
+% to be complete.
+% On the third hand, the general state of Internet security is so awful
+% that copying the code here probably can't make things worse.
 
 \COPYRIGHT
 

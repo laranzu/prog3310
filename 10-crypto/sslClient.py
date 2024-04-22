@@ -16,14 +16,14 @@
 """
 
 import sys
-import socket, ssl
+import pprint, socket, ssl
 from socket import *
 from pprint import pprint
 
 
-# Default IP address and port that client will contact
-serviceHost = "www.anu.edu.au"
-servicePort = 443
+# Default hostname and port that client will contact
+webHost = "www.anu.edu.au"
+webPort = 443
 
 
 def openSSL(hostName, port):
@@ -41,6 +41,7 @@ def openSSL(hostName, port):
     print("Cipher: ", sslSock.cipher())
     print("Certificate:")
     pprint(sslSock.getpeercert(False))
+    print("Client connected to", sslSock.getpeername()[0], sslSock.getpeername()[1])
     # Return both, although we mostly just use the socket
     return sslSock, context
 
@@ -58,30 +59,29 @@ def buildRequest(sock):
 
 def printResponse(sock):
     """Just print whatever the server sends us"""
-    response = b""
     while True:
         line = readLine(sock)
         if line is None:
             break
+        # Reponse has line ending already
         print(line, end='')
 
 def inputLoop(host, port):
     """Connect securely to host. Send a request, print response"""
     # Set up SSL
     sock, ctx = openSSL(host, port)
-    print("Client connected to", sock.getpeername()[0], sock.getpeername()[1])
     # Read and send input lines
     buildRequest(sock)
     # Print the response
     printResponse(sock)
     # 
     sock.close()
-    
+
 
 def sendRequest(sock, request):
     """HTTP request header"""
     request += '\r\n'
-    sock.sendall(request.encode('utf-8'))
+    sock.send(request.encode('utf-8'))
 
 def readLine(sock):
     """HTTP reply header, or content if text"""
@@ -102,19 +102,19 @@ def readLine(sock):
 
 def processArgs(argv):
     """Handle command line arguments"""
-    global serviceHost, servicePort
+    global webHost, webPort
     #
     # This program has only two CLI arguments, and we know the order.
     # For any program with more than two args, use a loop or look up
     # the standard Python argparse library.
     if len(argv) > 1:
-        serviceHost = argv[1]
+        webHost = argv[1]
         if len(argv) > 2:
-            servicePort = int(argv[2])
+            webPort = int(argv[2])
 
 ##
 
 if __name__ == "__main__":
     processArgs(sys.argv)
-    inputLoop(serviceHost, servicePort)
+    inputLoop(webHost, webPort)
     print("Done.")
