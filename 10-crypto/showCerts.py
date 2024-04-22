@@ -8,9 +8,7 @@
     The -v option prints enormous amounts of detail.
 
     Most computers have some kind of utility program(s) that
-    do the same thing but better. For teaching it is nice to
-    have a short cross-platform example in a language more
-    students are familiar with.
+    do the same thing but better. This is cross-platform.
     Written by Hugh Fisher u9011925, ANU, 2024
     Demonstration code for COMP3310
 """
@@ -26,7 +24,6 @@ def showCertificates(verbose):
     ctx = ssl.create_default_context()
     ctx.load_default_certs()
     loadedCerts = ctx.get_ca_certs(False)
-    print("Loaded {} certificates".format(len(loadedCerts)))
     for cert in loadedCerts:
         if verbose:
             # Easy, get Python to print everything
@@ -45,6 +42,7 @@ def showCertificates(verbose):
                     print(subject[k])
                     break
     print()
+    print("Loaded {} certificates".format(len(loadedCerts)))
 
 ##
 
