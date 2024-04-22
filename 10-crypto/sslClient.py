@@ -7,8 +7,8 @@
         python sslClient.py [ IP addr ] [ port ]
 
     Reads and sends input lines from terminal until blank line.
-    (In other words, a HTTP request.) Half closes socket.
-    Then reads and prints responses from server until closed.
+    (In other words, a HTTP request.) Then reads and prints
+    lines from server until closed.
 
     Written by Hugh Fisher u9011925, ANU, 2024
     Released under Creative Commons CC0 Public Domain Dedication
@@ -30,11 +30,11 @@ def openSSL(hostName, port):
     """Return new SSL socket and context to hostName:port"""
     # Start with TCP socket
     sock = socket(AF_INET, SOCK_STREAM)
-    sock.connect((hostName, port))
-    print("Client connected to", sock.getpeername()[0], sock.getpeername()[1])
-    # Convert to SSL
+    # Convert to SSL/TLS
     context = ssl.create_default_context()
     sslSock = context.wrap_socket(sock, server_hostname=hostName)
+    # and connect
+    sslSock.connect((hostName, port))
     # Initial secure handshake
     sslSock.do_handshake()
     print("Version:", sslSock.version())
@@ -44,25 +44,60 @@ def openSSL(hostName, port):
     # Return both, although we mostly just use the socket
     return sslSock, context
 
+def buildRequest(sock):
+    """Read input until empty line, send as request"""
+    while True:
+        try:
+            line = input()
+        except EOFError:
+            break
+        # Send line *then* check if it was empty
+        sendRequest(sock, line)
+        if len(line) == 0:
+            break
 
+def printResponse(sock):
+    """Just print whatever the server sends us"""
+    response = b""
+    while True:
+        line = readLine(sock)
+        if line is None:
+            break
+        print(line, end='')
 
 def inputLoop(host, port):
-    """Read input until blank line. Send as request to host, print response"""
+    """Connect securely to host. Send a request, print response"""
     # Set up SSL
     sock, ctx = openSSL(host, port)
+    print("Client connected to", sock.getpeername()[0], sock.getpeername()[1])
+    # Read and send input lines
+    buildRequest(sock)
+    # Print the response
+    printResponse(sock)
+    # 
     sock.close()
+    
 
 def sendRequest(sock, request):
-    """Send our request to server"""
-    # No try: if anything goes wrong, higher level will handle
-    writeLine(sock, request)
-    print("Sent request to server")
+    """HTTP request header"""
+    request += '\r\n'
+    sock.sendall(request.encode('utf-8'))
 
-
-def readReply(sock):
-    """Read and print server response"""
-    reply = readLine(sock)
-    print(reply)
+def readLine(sock):
+    """HTTP reply header, or content if text"""
+    inData = b''
+    while True:
+        ch = sock.recv(1)
+        if len(ch) == 0:
+            if len(inData) > 0:
+                break
+            else:
+                return None
+        inData += ch
+        if ch == b'\n':
+            break
+    txt = inData.decode('utf-8', 'backslashreplace')
+    return txt
 
 
 def processArgs(argv):
