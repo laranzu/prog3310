@@ -62,6 +62,7 @@ public class HashSig {
             digest.update(block, 0, nBytes);
         }
         src.close();
+        // Finish calculation (pad, etc) and show
         sig = digest.digest();
         System.out.println(hexDigest(sig));
     }

@@ -134,11 +134,9 @@ originally text, are encrypted as binary data and cannot be read.
 
 Now go back to the source code.
 
-The new \texttt{openSSL} starts by creating a standard socket. It then
-creates a secure \emph{context} that manages an SSL (or TLS) encrypted connection
-and a secure socket that is \DQ{wrapped} around the underlying TCP connection.
-And finally there is the \emph{handshake} where the client and server agree
-on what cryptographic algorithm and keys to use.
+The new \texttt{openSSL} creates a secure socket that is \DQ{wrapped} around the
+underlying TCP connection. And there is the \emph{handshake} where the client and
+server agree on what cryptographic algorithm and keys to use.
 
 \emph{The rest of the program does not need to change.} A secure socket implements
 the same methods as before, but now data is encrypted before being sent and
@@ -156,17 +154,6 @@ program shows, there are a lot of parts involved that all need to work together.
 As the secure socket program shows, it is not very difficult to create a more
 secure network connection when the underlying system has these parts.
 
-% \SECTION{Network security programming}
-
-% This tutorial includes simple code that implements some cryptographic and
-% "security" procedures. Can you use this code for your own programs?
-
-% The answer is\ldots maybe? Writing secure network programs is important
-% and the code here shows you how to start. On the other hand, this code
-% was not written by a security expert so is not efficient nor guaranteed
-% to be complete.
-% On the third hand, the general state of Internet security is so awful
-% that copying the code here probably can't make things worse.
 
 \COPYRIGHT
 

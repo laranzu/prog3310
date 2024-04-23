@@ -35,6 +35,7 @@ def hash(infile, algo):
             break
         digest.update(block)
     src.close()
+    # Finish calculation (pad, etc) and show
     print(digest.hexdigest())
 
 def available():
