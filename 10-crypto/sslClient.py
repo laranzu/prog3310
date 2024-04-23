@@ -63,7 +63,7 @@ def printResponse(sock):
         line = readLine(sock)
         if line is None:
             break
-        # Reponse has line ending already
+        # Response has line ending already
         print(line, end='')
 
 def inputLoop(host, port):

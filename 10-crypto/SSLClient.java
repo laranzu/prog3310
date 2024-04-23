@@ -17,6 +17,7 @@
 import java.io.*;
 import java.net.*;
 
+import javax.net.SocketFactory;
 import javax.net.ssl.*;
 
 
@@ -26,13 +27,41 @@ public class SSLClient {
     static String   webHost = "www.anu.edu.au";
     static int      webPort = 443;
 
+
+    /** Return new SSL socket to hostName:port */
+
+    protected static SSLSocket openSSL(String hostName, int port)
+        throws IOException
+    {
+        SSLSocket           sslSock;
+        SocketFactory       maker;
+        InetSocketAddress   remote;
+        SSLSession          session;
+
+        // In Java the underlying socket is created automatically
+        // by the old style factory object that we have to use.
+        maker = SSLSocketFactory.getDefault();
+        sslSock = (SSLSocket)maker.createSocket(hostName, port);
+        // Already connected for us, so initial secure handshake
+        sslSock.startHandshake();
+        session = sslSock.getSession();
+        System.out.printf("Version: %s\n", session.getProtocol());
+        System.out.printf("Cipher:  %s\n", session.getCipherSuite());
+        //print("Certificate:");
+        //pprint(sslSock.getpeercert(False))
+        remote = (InetSocketAddress) sslSock.getRemoteSocketAddress();
+        System.out.printf("Client connected to %s %d\n",
+                            remote.getAddress().getHostAddress(), remote.getPort());
+        return sslSock;
+    }
+
     /** Read input until empty line, send as request */
 
     protected static void buildRequest(Socket sock)
         throws IOException
     {
-        BufferedReader      input;
-        String              line;
+        BufferedReader  input;
+        String          line;
 
         input = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
@@ -49,8 +78,17 @@ public class SSLClient {
     /** Just print whatever the server sends us */
 
     protected static void printResponse(Socket sock)
+        throws IOException
     {
+        String  line;
 
+        while (true) {
+            line = readLine(sock);
+            if (line == null)
+                break;
+            // Response has line ending already
+            System.out.print(line);
+        }
     }
 
     /** Connect securely to host. Send a request, print response */
@@ -58,15 +96,10 @@ public class SSLClient {
     protected static void inputLoop(String host, int port)
         throws IOException
     {
-        Socket              sock;
-        String              line, reply;
-        InetSocketAddress   remote;
+        Socket  sock;
 
         // Set up SSL
-        sock = new Socket(host, port);
-        remote = (InetSocketAddress) sock.getRemoteSocketAddress();
-        System.out.printf("Client connected to %s %d\n",
-                            remote.getAddress().getHostAddress(), remote.getPort());
+        sock = openSSL(host, port);
         // Read and send input lines
         buildRequest(sock);
         // Print the response
