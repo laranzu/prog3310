@@ -26,35 +26,55 @@ public class SSLClient {
     static String   webHost = "www.anu.edu.au";
     static int      webPort = 443;
 
-    /** Read input until EOF. Send as request to host, print response */
+    /** Read input until empty line, send as request */
 
-    protected static void inputLoop(String host, int port)
+    protected static void buildRequest(Socket sock)
         throws IOException
     {
-        Socket              sock;
         BufferedReader      input;
-        String              line, reply;
-        InetSocketAddress   remote;
+        String              line;
 
-        // Create TCP socket, connected to a single host
-        sock = new Socket(host, port);
-        remote = (InetSocketAddress) sock.getRemoteSocketAddress();
-        System.out.printf("Client connected to %s %d\n",
-                            remote.getAddress().getHostAddress(), remote.getPort());
-        // Keep reading lines and sending them
         input = new BufferedReader(new InputStreamReader(System.in));
         while (true) {
             line = input.readLine();
             if (line == null)
                 break;
+            // Send line *then* check if it was empty
             sendRequest(sock, line);
-            readReply(sock);
+            if (line.length() == 0)
+                break;
         }
-        System.out.println("Client close");
-        // Tell the server we are done
-        SockLine.writeLine(sock, "BYE");
+    }
+
+    /** Just print whatever the server sends us */
+
+    protected static void printResponse(Socket sock)
+    {
+
+    }
+
+    /** Connect securely to host. Send a request, print response */
+
+    protected static void inputLoop(String host, int port)
+        throws IOException
+    {
+        Socket              sock;
+        String              line, reply;
+        InetSocketAddress   remote;
+
+        // Set up SSL
+        sock = new Socket(host, port);
+        remote = (InetSocketAddress) sock.getRemoteSocketAddress();
+        System.out.printf("Client connected to %s %d\n",
+                            remote.getAddress().getHostAddress(), remote.getPort());
+        // Read and send input lines
+        buildRequest(sock);
+        // Print the response
+        printResponse(sock);
+        //
         sock.close();
     }
+
 
     /** HTTP request header */
 
