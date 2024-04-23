@@ -16,6 +16,7 @@
 
 import java.io.*;
 import java.net.*;
+import java.security.cert.*;
 
 import javax.net.SocketFactory;
 import javax.net.ssl.*;
@@ -47,8 +48,12 @@ public class SSLClient {
         session = sslSock.getSession();
         System.out.printf("Version: %s\n", session.getProtocol());
         System.out.printf("Cipher:  %s\n", session.getCipherSuite());
-        //print("Certificate:");
-        //pprint(sslSock.getpeercert(False))
+        System.out.println("Certificate:");
+        for (Certificate cert : session.getPeerCertificates()) {
+            System.out.print(cert.toString());
+            // Just print the peer cert, not entire chain
+            break;
+        }
         remote = (InetSocketAddress) sslSock.getRemoteSocketAddress();
         System.out.printf("Client connected to %s %d\n",
                             remote.getAddress().getHostAddress(), remote.getPort());
