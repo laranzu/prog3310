@@ -20,6 +20,7 @@ import pprint, socket, ssl
 from socket import *
 from pprint import pprint
 
+from sockLine import readLine, writeLine
 
 # Default hostname and port that client will contact
 webHost = "www.anu.edu.au"
@@ -53,7 +54,7 @@ def buildRequest(sock):
         except EOFError:
             break
         # Send line *then* check if it was empty
-        sendRequest(sock, line)
+        writeLine(sock, line)
         if len(line) == 0:
             break
 
@@ -76,28 +77,6 @@ def inputLoop(host, port):
     printResponse(sock)
     # 
     sock.close()
-
-
-def sendRequest(sock, request):
-    """HTTP request header"""
-    request += '\r\n'
-    sock.send(request.encode('utf-8'))
-
-def readLine(sock):
-    """HTTP reply header, or content if text"""
-    inData = b''
-    while True:
-        ch = sock.recv(1)
-        if len(ch) == 0:
-            if len(inData) > 0:
-                break
-            else:
-                return None
-        inData += ch
-        if ch == b'\n':
-            break
-    txt = inData.decode('utf-8', 'backslashreplace')
-    return txt
 
 
 def processArgs(argv):

@@ -74,7 +74,7 @@ public class SSLClient {
             if (line == null)
                 break;
             // Send line *then* check if it was empty
-            sendRequest(sock, line);
+            SockLine.writeLine(sock, line);
             if (line.length() == 0)
                 break;
         }
@@ -88,7 +88,7 @@ public class SSLClient {
         String  line;
 
         while (true) {
-            line = readLine(sock);
+            line = SockLine.readLine(sock);
             if (line == null)
                 break;
             // Response has line ending already
@@ -111,41 +111,6 @@ public class SSLClient {
         printResponse(sock);
         //
         sock.close();
-    }
-
-
-    /** HTTP request header */
-
-    protected static void sendRequest(Socket sock, String request)
-        throws IOException
-    {
-        request += "\r\n";
-        sock.getOutputStream().write(request.getBytes("UTF-8"));
-    }
-
-    /** HTTP reply header, or content if text */
-
-    protected static String readLine(Socket sock)
-        throws IOException
-    {
-        ByteArrayOutputStream inData = new ByteArrayOutputStream();
-        int     ch;
-        String  txt;
-
-        while (true) {
-            ch = sock.getInputStream().read();
-            if (ch < 0) {
-                if (inData.size() > 0)
-                    break;
-                else
-                    return null;
-            }
-            inData.write((byte)ch);
-            if (ch == (int)'\n')
-                break;
-        }
-        txt = new String(inData.toByteArray(), 0, inData.size(), "UTF-8");
-        return txt;
     }
 
 
