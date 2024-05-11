@@ -39,8 +39,6 @@ def readLine(sock):
         # of multi byte characters have at least bit 7 set
         if ch == b'\n':
             break
-    if inData.endswith(b'\r\r'):
-        inData = inData[0:-2]
     # Back slash replace won't raise exception on illegal char sequence
     txt = inData.decode('utf-8', 'backslashreplace')
     return txt
