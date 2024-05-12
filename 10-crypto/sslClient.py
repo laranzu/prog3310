@@ -83,9 +83,6 @@ def processArgs(argv):
     """Handle command line arguments"""
     global webHost, webPort
     #
-    # This program has only two CLI arguments, and we know the order.
-    # For any program with more than two args, use a loop or look up
-    # the standard Python argparse library.
     if len(argv) > 1:
         webHost = argv[1]
         if len(argv) > 2:
