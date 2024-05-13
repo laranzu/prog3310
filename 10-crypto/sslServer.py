@@ -47,19 +47,20 @@ def clientLoop(host, port):
     # Set up passive socket and SSL/TLS
     serverSock, context = serverSSL(host, port)
     while True:
+        # Browser connection
         try:
             client, clientAddr = serverSock.accept()
         # If something goes wrong with the network, we will stop
         except OSError as e:
             print(type(e).__name__, "in clientLoop", e.args)
             break
+        print("Accepted client connection from", clientAddr)
         # Now create encrypted connection to client
         #sslSock = context.wrap_socket(client, server_side=True)
         sslSock = client
-        print("Created server socket for", sslSock.getsockname()[0],
+        print("Created SSL server socket for", sslSock.getsockname()[0],
                                         sslSock.getsockname()[1])
-        print("Accepted client connection from", clientAddr)
-        # particular client. Use for requests and replies.
+        # And pretend to be web server
         singleRequest(sslSock)
         #
     print("Close server socket")
@@ -75,8 +76,15 @@ def singleRequest(sock):
             if header is None or len(header.rstrip()) == 0:
                 break
         print("Server received", request)
-        writeLine(sock, "HTTP/1.0 404 Server has no resources")
-        writeLine(sock, "")
+        # Respond
+        if request.startswith("GET / HTTP"):
+            print("Fake web page")
+            writeLine(sock, "HTTP/1.0 200 OK")
+            writeLine(sock, "")
+            writeLine(sock, "<html><head><title>Hello</title></head><body><h1>Hello World</h1></body></html>")
+        else:
+            print("No can do")
+            writeLine(sock, "HTTP/1.0 501 Server only has / resource")
     # Try not to crash if the client does something wrong
     except OSError as e:
         print(type(e).__name__, "in serverLoop", e.args)
