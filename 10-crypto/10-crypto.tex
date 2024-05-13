@@ -22,7 +22,9 @@ In this tutorial you will
 
 \DOT Find how many certificates your computer has
 
-\DOT Study a simple program using an encrypted socket
+\DOT Study a simple client program using an encrypted socket
+
+\DOT \emph{MAYBE} Set up an encrypted socket server
 
 
 \SECTION{Cryptographic Signatures}
@@ -156,6 +158,52 @@ Secure network programming is both complicated and simple. As the certificates
 program shows, there are a lot of parts involved that all need to work together.
 As the secure socket program shows, it is not very difficult to create a more
 secure network connection when the underlying system has these parts.
+
+
+\SECTION{Secure servers}
+
+\begin{IMPORTANT}
+This part of the tutorial exercise is not quite finished. Sorry! Extra notes
+and instructions will be available Real Soon Now.
+\end{IMPORTANT}
+
+\STEP The program for this section is \NAME{sslServer.py} or \NAME{SSLServer.java}.
+This is similar to the TCP server from an earlier tutorial, but modified to
+respond to HTTP requests over an encrypted socket.
+
+\STEP First, test the program with a plain unencrypted TCP socket. Open the server
+program code and search for the comment \texttt{Use this for plain http test}
+in the function or method named \texttt{clientLoop}.
+
+There should be two lines of code that create a socket, one for SSL, one for
+standard unencrypted TCP. Change the code so that it creates a standard socket
+instead of SSL.
+
+Compile (Java) and run the server program: it should be listening on port 3310.
+
+Now open your favourite web browser and go to web site
+\CODELINE{http://localhost:3310}
+(Make sure it is \SQ{http}, not \SQ{https}).
+
+You should see the server program print out that it has received a request, and
+the web browser should show a very simple web page.
+
+\STEP Stop the server program. Change the code again so that it creates an SSL
+socket, not standard. Compile (Java) and run again.
+
+Now try your web browser with
+\CODELINE{https://localhost:3310}
+You will get a warning of some kind.
+
+Try the SSL client program, this time with command line arguments
+\texttt{localhost 3310}
+This won't work either: most likely the client will complain that it cannot
+negotiate an encryption scheme.
+
+The problem is that the server has no certificate, so cannot be verified.
+It is not enough to say \DQ{I am encrypted server, you can trust me}.
+
+\STEP Generate a certificate for your server. \emph{TODO}
 
 
 \COPYRIGHT

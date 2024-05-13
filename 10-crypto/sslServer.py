@@ -57,8 +57,8 @@ def clientLoop(host, port):
             break
         print("Accepted client connection from", clientAddr)
         # Now create encrypted connection to client
-        #sslSock = context.wrap_socket(client, server_side=True)
-        sslSock = client # Use this for plain http test
+        sslSock = context.wrap_socket(client, server_side=True)
+        #sslSock = client # Use this for plain http test
         print("Created SSL server socket for", sslSock.getsockname()[0],
                                         sslSock.getsockname()[1])
         # And pretend to be web server
@@ -84,7 +84,8 @@ def singleRequest(sock):
             writeLine(sock, "")
             writeLine(sock, "<html><head><title>Hello</title></head><body><h1>Hello World</h1></body></html>")
         else:
-            writeLine(sock, "HTTP/1.0 501 Server only has / resource")
+            writeLine(sock, "HTTP/1.0 404 Server only has / resource")
+            writeLine(sock, "")
     # Try not to crash if the client does something wrong
     except OSError as e:
         print(type(e).__name__, "in singleRequest", e.args)
