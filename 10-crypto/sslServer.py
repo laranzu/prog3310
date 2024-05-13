@@ -35,6 +35,7 @@ def serverSSL(host, port):
     sock.listen(5)
     # SSL/TLS
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
+    # TODO this is not working
     context.check_hostname = False
     context.load_default_certs(purpose=ssl.Purpose.CLIENT_AUTH)
     #   OR
@@ -57,7 +58,7 @@ def clientLoop(host, port):
         print("Accepted client connection from", clientAddr)
         # Now create encrypted connection to client
         #sslSock = context.wrap_socket(client, server_side=True)
-        sslSock = client
+        sslSock = client # Use this for plain http test
         print("Created SSL server socket for", sslSock.getsockname()[0],
                                         sslSock.getsockname()[1])
         # And pretend to be web server
@@ -73,22 +74,21 @@ def singleRequest(sock):
         request = readLine(sock)
         while True:
             header = readLine(sock)
-            if header is None or len(header.rstrip()) == 0:
+            if header is None or len(header) == 0:
                 break
         print("Server received", request)
         # Respond
         if request.startswith("GET / HTTP"):
-            print("Fake web page")
             writeLine(sock, "HTTP/1.0 200 OK")
+            writeLine(sock, "Content-Type: text/html")
             writeLine(sock, "")
             writeLine(sock, "<html><head><title>Hello</title></head><body><h1>Hello World</h1></body></html>")
         else:
-            print("No can do")
             writeLine(sock, "HTTP/1.0 501 Server only has / resource")
     # Try not to crash if the client does something wrong
     except OSError as e:
-        print(type(e).__name__, "in serverLoop", e.args)
-    print("Close client socket")
+        print(type(e).__name__, "in singleRequest", e.args)
+    print("Close client connection")
     sock.close()
 
 

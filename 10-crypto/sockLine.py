@@ -41,4 +41,6 @@ def readLine(sock):
             break
     # Back slash replace won't raise exception on illegal char sequence
     txt = inData.decode('utf-8', 'backslashreplace')
+    # Remove trailing white space and any CR LF
+    txt = txt.rstrip()
     return txt

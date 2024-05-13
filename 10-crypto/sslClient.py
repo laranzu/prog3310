@@ -64,8 +64,7 @@ def printResponse(sock):
         line = readLine(sock)
         if line is None:
             break
-        # Response has line ending already
-        print(line, end='')
+        print(line)
 
 def inputLoop(host, port):
     """Connect securely to host. Send a request, print response"""
