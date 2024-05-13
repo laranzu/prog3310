@@ -91,8 +91,7 @@ public class SSLClient {
             line = SockLine.readLine(sock);
             if (line == null)
                 break;
-            // Response has line ending already
-            System.out.print(line);
+            System.out.println(line);
         }
     }
 
@@ -109,7 +108,7 @@ public class SSLClient {
         buildRequest(sock);
         // Print the response
         printResponse(sock);
-        //
+        // and done
         sock.close();
     }
 

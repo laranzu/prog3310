@@ -34,7 +34,8 @@ class SockLine {
         // A memory mapped output stream is the easiest way I know
         // to store a varying length sequence of bytes.
         ByteArrayOutputStream inData = new ByteArrayOutputStream();
-        int     ch;
+        byte[]  data;
+        int     ch, count;
         String  txt;
 
         while (true) {
@@ -53,9 +54,14 @@ class SockLine {
             if (ch == (int)'\n')
                 break;
         }
-        txt = new String(inData.toByteArray(), 0, inData.size(), "UTF-8");
-        if (txt.endsWith("\r\n"))
-            txt = txt.substring(0, txt.length() - 2);
+        // Get bytes so we can check for and remove CR LF at end
+        data = inData.toByteArray();
+        count = inData.size();
+        if (count > 0 && data[count - 1] == (int)'\n')
+            count -= 1;
+        if (count > 0 && data[count - 1] == (int)'\r')
+            count -= 1;
+        txt = new String(data, 0, count, "UTF-8");
         return txt;
     }
 
