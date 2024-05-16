@@ -76,7 +76,7 @@ If a villain has access to the main OpenSSL web site and can upload their
 own versions, can you still trust the signature?
 
 
-\SECTION{Certificates}
+\SECTION{Certificates part 1}
 
 \STEP Web server security (and other applications) depends on certificates
 and Certfication Authorities. Program \NAME{showCerts.py},
@@ -95,9 +95,6 @@ complicated.
 The code for this program is not very useful, it exists only so the same
 tutorial instructions work on all the computers students are likely to have.
 (And there is no Java version because the code is awful.)
-
-If you decide you do want to learn more about how all this works, CECC
-has a course for you: COMP3704 Network Security.
 
 
 \SECTION{Secure sockets}
@@ -195,16 +192,29 @@ Now try your web browser with
 \CODELINE{https://localhost:3310}
 You will get a warning of some kind.
 
-Try the SSL client program, this time with command line arguments
-\texttt{localhost 3310}
-This won't work either: most likely the client will complain that it cannot
-negotiate an encryption scheme.
-
 The problem is that the server has no certificate, so cannot be verified.
 It is not enough to say \DQ{I am encrypted server, you can trust me}.
 
-\STEP Generate a certificate for your server. \emph{TODO}
 
+\SECTION{Certificates part 2}
+
+Creating certificates is complicated with lots of fiddly details. For this tutorial
+we have a pregenerated certificate thanks to Felix.
+
+\texttt{localhost.crt} and \texttt{localhost.key} are the certificates for this particular
+computer, in two different formats. \\
+\texttt{ca.crt} and \texttt{ca.key} identify the \emph{certificate authority}, the
+organisation that created the certificate. \\
+And \texttt{fullchain.pem} is the two \texttt{.crt} certificates glued together into a
+single file.
+
+If you want to recreate these files yourself you will need the \texttt{openssl} software.
+It is installed on the CECC lab computers, and as open source software can be downloaded
+and install for free.
+The commands are in shell script \texttt{make3310cert.sh}
+
+If you decide you do want to learn more about how all this works, CECC
+has a course for you: COMP3704 Network Security.
 
 \COPYRIGHT
 
