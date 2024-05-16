@@ -35,11 +35,8 @@ def serverSSL(host, port):
     sock.listen(5)
     # SSL/TLS
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    # TODO this is not working
-    context.check_hostname = False
-    context.load_default_certs(purpose=ssl.Purpose.CLIENT_AUTH)
-    #   OR
-    #   context.load_cert_chain(certificate file, key file, password)
+    # Load our certificate
+    context.load_cert_chain("fullchain.pem", "localhost.key")
     # Unlike client side, servers use base socket and context
     return sock, context
 
@@ -56,7 +53,7 @@ def clientLoop(host, port):
             print(type(e).__name__, "in clientLoop", e.args)
             break
         print("Accepted client connection from", clientAddr)
-        # Now create encrypted connection to client
+        # Create encrypted connection to client
         sslSock = context.wrap_socket(client, server_side=True)
         #sslSock = client # Use this for plain http test
         print("Created SSL server socket for", sslSock.getsockname()[0],

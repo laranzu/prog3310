@@ -34,6 +34,8 @@ def openSSL(hostName, port):
     # Convert to SSL/TLS
     context = ssl.create_default_context()
     sslSock = context.wrap_socket(sock, server_hostname=hostName)
+    # Add our own Certificate Authority to the trusted list
+    context.load_verify_locations(cafile="ca.crt")
     # and connect
     sslSock.connect((hostName, port))
     # Initial secure handshake

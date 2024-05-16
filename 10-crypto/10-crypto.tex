@@ -201,16 +201,16 @@ It is not enough to say \DQ{I am encrypted server, you can trust me}.
 Creating certificates is complicated with lots of fiddly details. For this tutorial
 we have a pregenerated certificate thanks to Felix.
 
-\texttt{localhost.crt} and \texttt{localhost.key} are the certificates for this particular
-computer, in two different formats. \\
+\texttt{localhost.crt} and \texttt{localhost.key} are the certificate and private key
+for this particular computer. \\
 \texttt{ca.crt} and \texttt{ca.key} identify the \emph{certificate authority}, the
 organisation that created the certificate. \\
-And \texttt{fullchain.pem} is the two \texttt{.crt} certificates glued together into a
+And \texttt{fullchain.pem} is the two certificates glued together into a
 single file.
 
 If you want to recreate these files yourself you will need the \texttt{openssl} software.
-It is installed on the CECC lab computers, and as open source software can be downloaded
-and install for free.
+It is installed on the CECC lab PCs, and as open source software can be downloaded
+and installed on your own computer for free.
 The commands are in shell script \texttt{make3310cert.sh}
 
 If you decide you do want to learn more about how all this works, CECC
