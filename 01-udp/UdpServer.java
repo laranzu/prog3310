@@ -6,7 +6,7 @@
  *  time, and handle requests from any client that connects.
  *
  *  Run with
- *      java UdpServer
+ *      java UdpServer [ IP addr ] [ port ]
  * 
  *  Written by Hugh Fisher u9011925, ANU, 2024
  *  Released under Creative Commons CC0 Public Domain Dedication
@@ -120,9 +120,25 @@ public class UdpServer {
         sock.send(reply);
     }
 
+
+    /** Handle command line arguments. */
+
+    protected static void processArgs(String[] args)
+    {
+        //  This program has only two CLI arguments, and we know the order.
+        //  For any program with more than two args, use a loop or package.
+        if (args.length > 0) {
+            serviceHost = args[0];
+            if (args.length > 1) {
+                servicePort = Integer.parseInt(args[1]);
+            }
+        }
+    }
+
     public static void main(String[] args)
     {
         try {
+            processArgs(args);
             serverLoop(serviceHost, servicePort);
             System.out.println("Done.");
         } catch (Exception e) {

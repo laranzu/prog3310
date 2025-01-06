@@ -5,7 +5,7 @@
  *  The client knows the server, and makes requests to get a response.
  *
  *  Run with
- *      java UdpClient
+ *      java UdpClient [ IP addr ] [ port ]
  *
  *  Written by Hugh Fisher u9011925, ANU, 2024
  *  Released under Creative Commons CC0 Public Domain Dedication
@@ -115,9 +115,25 @@ public class UdpClient {
         return reply;
     }
 
+
+    /** Handle command line arguments. */
+
+    protected static void processArgs(String[] args)
+    {
+        //  This program has only two CLI arguments, and we know the order.
+        //  For any program with more than two args, use a loop or package.
+        if (args.length > 0) {
+            serviceHost = args[0];
+            if (args.length > 1) {
+                servicePort = Integer.parseInt(args[1]);
+            }
+        }
+    }
+
     public static void main(String[] args)
     {
         try {
+            processArgs(args);
             inputLoop(serviceHost, servicePort);
             System.out.println("Done.");
         } catch (Exception e) {

@@ -8,7 +8,7 @@
     time, and handle requests from any client that connects.
 
     Run with
-        python udpServer.py
+        python udpServer.py [ IP addr ] [ port ]
 
     Written by Hugh Fisher u9011925, ANU, 2024
     Released under Creative Commons CC0 Public Domain Dedication
@@ -76,8 +76,22 @@ def sendReply(sock, reply, sender):
     reply = reply.encode('utf-8')
     sock.sendto(reply, sender)
 
+
+def processArgs(argv):
+    """Handle command line arguments"""
+    global serviceHost, servicePort
+    #
+    # This program has only two CLI arguments, and we know the order.
+    # For any program with more than two args, use a loop or look up
+    # the standard Python argparse library.
+    if len(argv) > 1:
+        serviceHost = argv[1]
+        if len(argv) > 2:
+            servicePort = int(argv[2])
+
 ##
 
 if __name__ == "__main__":
+    processArgs(sys.argv)
     serverLoop(serviceHost, servicePort)
     print("Done.")

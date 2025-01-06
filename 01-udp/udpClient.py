@@ -7,7 +7,7 @@
     The client knows the server, and makes requests to get a response.
 
     Run with
-        python udpClient.py
+        python udpClient.py [ IP addr ] [ port ]
 
     Written by Hugh Fisher u9011925, ANU, 2024
     Released under Creative Commons CC0 Public Domain Dedication
@@ -84,8 +84,22 @@ def readReply(sock):
     reply = inData.decode('utf-8', 'backslashreplace')
     return reply
 
+
+def processArgs(argv):
+    """Handle command line arguments"""
+    global serviceHost, servicePort
+    #
+    # This program has only two CLI arguments, and we know the order.
+    # For any program with more than two args, use a loop or look up
+    # the standard Python argparse library.
+    if len(argv) > 1:
+        serviceHost = argv[1]
+        if len(argv) > 2:
+            servicePort = int(argv[2])
+
 ##
 
 if __name__ == "__main__":
+    processArgs(sys.argv)
     inputLoop(serviceHost, servicePort)
     print("Done.")
