@@ -1,7 +1,7 @@
 
 
 %   COMP3310 tutorial zero: basic programming
-%   Written by Hugh Fisher, ANU, 2024
+%   Written by Hugh Fisher, ANU, 2024-
 %   Creative Commons CC-BY-4.0 license
 
 %   LaTeX markup for XeTeX with a standard texlive distribution
@@ -26,8 +26,8 @@ The goals of this tutorial are:
 \DOT Introduce you to Inter Process Communication and the problems that can arise.
 
 You don't have to finish this tutorial immediately. If you don't have the right
-software, or don't understand how to do something, you can catch up. Ask your fellow
-students or your tutor for help.
+software, or don't understand how to do something, you can catch up. Ask your tutor
+or your fellow students for help.
 
 
 \SECTION{Software}
@@ -43,7 +43,7 @@ other for their assignments. Most tutorials require only the standard built in l
 For Python any version from about 3.7 on will work. You won't need type annotations,
 match-case statements, async code or other features from newer releases.
 
-For Java use JDK 17, the long term release. You won't need virtual threads,
+For Java the minimum is JDK 17, the long term release. You won't need virtual threads,
 records, string templates, or other new features.
 
 Tutorials are designed for a command line environment. On Linux and MacOS this is the
@@ -53,7 +53,8 @@ three systems.
 
 Why a CLI, Command Line Environment? This is not to make things deliberately hard,
 or trying to bring back the computers of the previous century. Most networked computer
-programs, and most computer network administration, does not use a GUI. This course is
+programs, and most computer network administration, does not use a GUI. Anyone developing
+for the cloud (Azure, AWS, etc) will be using the command line. This course is
 about networks, not GUI programming.
 
 You will need some way to edit your Python/Java programs. Any text editor will do:
@@ -66,7 +67,10 @@ marked.
 
 You need to know how to decompress / extract \NAME{ZIP} archives, as later on you will
 be submitting your assignments in ZIP form. ZIP, \emph{not} 7z or RAR or tar.
-(And don't put spaces or funny characters in file and folder names.)
+
+Please note that all the files in these tutorials have names with just letters, numbers,
+underscores, and dashes. \emph{Don't} put spaces or funny characters in file and folder
+names that will be used in a CLI.
 
 
 \SECTION{Compile and run a program}
@@ -152,7 +156,7 @@ Send the output of the first program as the input to the second with command:
 or
 \CODELINE{java Peasant | java Knight}
 
-This is IPC, Inter Process Communication, one program communicating with another
+This is IPC, Inter Process Communication, one program communicating with another,
 although here without a computer network.
 
 Type a few lines. Try the special input that crashes the knight program. (You
