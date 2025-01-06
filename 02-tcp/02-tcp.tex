@@ -1,7 +1,7 @@
 
 %   COMP3310 TCP tutorial
-%   Written by Hugh Fisher, ANU, 2024
-%   Creative Commons CC-BY-4.0 license
+%   Written by Hugh Fisher, ANU, 2024-
+%   Creative Commons CC-BY-NC-SA-4.0 license
 
 %   LaTeX markup for XeTeX with a standard texlive distribution
 %   Command to build:
@@ -12,6 +12,10 @@
 \begin{document}
 
 \TITLE{TCP Client Server}
+
+\begin{itshape}
+This tutorial assumes you have completed the previous \NAME{UDP Client Server}.
+\end{itshape}
 
 
 \MINOR{Outline}
@@ -95,14 +99,24 @@ complete.)
 single 16K long line of randomly generated words. Use this as a client
 request by running the client program with standard input from this file,
 not the terminal.
-\CODELINE{python tcpClient.py < loremIpsum.txt}
-or
-\CODELINE{java TcpClient  < loremIpsum.txt}
 
 \begin{IMPORTANT}
 This is an example of \SQ{fuzzing}, sending unexpected input to a program
 and seeing what happens.
 \end{IMPORTANT}
+
+Sadly, the way to do this is different depending on the shell you are using.
+If you are using Linux, MacOS X, or WSL:
+
+\CODELINE{python tcpClient.py < loremIpsum.txt}
+or
+\CODELINE{java TcpClient  < loremIpsum.txt}
+
+If you are using MS Windows and PowerShell:
+
+\CODELINE{gc -encoding UTF8 loremIpsum.txt | python tcpClient.py}
+or
+\CODELINE{gc -encoding UTF8 loremIpsum.txt | java TcpClient}
 
 
 \SECTION{Protocol}
