@@ -170,7 +170,8 @@ your client and server can handle non-ASCII text.
 
 The TCP server can echo the input from other programs, not just the client.
 Open a web browser and type \texttt{localhost:3310} as the URL.
-Or try \NAME{telnet} or \NAME{nc} as the client. 
+Or try \texttt{telnet 127.0.0.1 3310}
+or \texttt{ncat 127.0.0.1 3310} as the client. 
 
 \emph{Optional}: Rewrite the server with a client session class, so that
 each \texttt{serverLoop}
