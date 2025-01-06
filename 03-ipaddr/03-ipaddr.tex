@@ -1,0 +1,130 @@
+
+
+%   COMP3310 IP address tutorial
+%   Written by Hugh Fisher, ANU, 2025
+%   Creative Commons CC-BY-NC-SA-4.0 license
+
+%   LaTeX markup for XeTeX with a standard texlive distribution
+%   Command to build:
+%       xelatex 03-ipaddr.tex
+
+\input{../common/formatting}
+
+\begin{document}
+
+\TITLE{IP Addressing}
+
+
+\MINOR{Outline}
+
+In this tutorial you will
+
+\DOT Discover the network addresses of computers and understand two special values
+
+\DOT Study how port numbers can be used for transport layer multiplexing
+
+This tutorial uses a pair of TCP client and server programs, which are the same as
+those for \NAME{TCP Client Server} tutorial.
+
+\SECTION{Network address}
+
+For this part of the exercise you will need to work with another student, with both your
+computers connected to the same network. This could be two PCs in the same CSIT lab, or
+two laptops connected to the same wireless network.
+
+\STEP In a shell on each computer, type \NAME{ifconfig} on a Linux or Mac,
+\NAME{ipconfig} on MS Windows.
+
+This command shows the network interfaces on your computer and a lot of technical details
+about each. For now the only information we need is the \texttt{inet} (Internet Address)
+or \texttt{IPv4 Address}. This is four decimal numbers separated by periods \DSH the same
+format as the \texttt{127.0.0.1} address shown in the server and client log messages.
+
+\begin{IMPORTANT}
+Once Upon A Time a computer would have only one or two network interfaces. Modern 21st
+century computers may have lots of different network interfaces to search through.
+
+You may or may not see different addresses in \emph{IPv6} format as well. Some future version
+of this course will use IPv6 only, but not yet.
+\end{IMPORTANT}
+
+Both addresses should start with the same first one to three numbers, indicating a
+shared network.
+For the examples my two home computers have IPv4 addresses \texttt{10.1.1.113}
+and \texttt{10.1.1.217}. You will need to replace these with the addresses you found.
+
+(It is \emph{possible} that this tutorial will run with two computers anywhere in the world,
+since that is why we use the Internet, but there are a lot of potential problems
+with no easy solutions. Both computers on the same network is more likely to work.)
+
+Pick one computer to run the server and one for the client. The client will need the IP
+address of the computer running the server, here \texttt{10.1.1.113}.
+First verify that the client computer can
+connect to the server computer over the network with the \NAME{ping} command:
+
+\begin{CODE}\begin{verbatim}
+/Users/hugh/Desktop% ping 10.1.1.113
+PING 10.1.1.113 (10.1.1.113): 56 data bytes
+64 bytes from 10.1.1.113: icmp_seq=0 ttl=64 time=0.756 ms
+64 bytes from 10.1.1.113: icmp_seq=1 ttl=64 time=0.363 ms
+^C
+\end{verbatim}\end{CODE}
+
+If the client cannot ping the server, repeat the \NAME{ifconfig} or \NAME{ipconfig} on
+the server computer. You may have mistyped the address, or need to choose a different address.
+
+\STEP Run the server program on the server computer (in the example above, the computer
+with IP address \texttt{10.1.1.113}) with no command line arguments.
+\CODELINE{python tcpServer.py}
+or
+\CODELINE{java TcpServer}
+
+Run the client program on the other computer with the IP address of the server
+as the command line argument:
+\CODELINE{python tcpClient.py 10.1.1.113}
+or
+\CODELINE{java TcpClient 10.1.1.113}
+
+The client will crash with some kind of connection exception. But if you open a second
+shell on the server computer and run a client there, it will be able to send a request
+and get a reply.
+This is because the default server IP address \texttt{127.0.0.1}
+only works for programs on the same computer.
+
+\STEP Control-C the server and restart with the IP address of the computer it is running on:
+\CODELINE{python tcpServer.py 10.1.1.113}
+or
+\CODELINE{java TcpServer 10.1.1.113}
+
+Run the client again on the other computer, with the server IP address, and this time
+it should work.
+
+\STEP Control-C the server and start it again with this special address:
+\CODELINE{python tcpServer.py 0.0.0.0}
+or
+\CODELINE{java TcpServer 0.0.0.0}
+
+Run the client again: it should still work.
+
+\begin{IMPORTANT}
+\texttt{127.0.0.1} means \SQ{inside this computer}.
+
+\texttt{0.0.0.0} for a server means \SQ{Whatever interface this computer has}. It allows
+the server program to be moved from computer to computer without needing to change the
+IP address.
+\end{IMPORTANT}
+
+\STEP Swap the computer roles, with the server running on the former client computer and
+the client on what used to be the server. If they don't work, check the IP addresses
+you are using as command line arguments.
+
+
+
+\SECTION{Experiments}
+
+\emph{Optional}: Try using an IPv6 address for server and client.
+
+
+\COPYRIGHT
+
+\end{document}
