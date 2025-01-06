@@ -39,6 +39,7 @@ def inputLoop(host, port):
     """Read input until EOF. Send as request to host, print response"""
     # Create an Internet UDP socket
     sock = socket(AF_INET, SOCK_DGRAM)
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     # This client will only connect to a single server, so we can set the peer
     # address, ie the remote server, for this socket just once.
     sock.connect((host, port))

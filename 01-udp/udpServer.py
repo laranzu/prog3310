@@ -35,6 +35,7 @@ def serverLoop(host, port):
     # Create an Internet UDP socket
     sock = socket(AF_INET, SOCK_DGRAM)
     # Set the address and port that we read requests from
+    sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     sock.bind((host, port))
     print("Server created socket for", sock.getsockname()[0], sock.getsockname()[1])
     # And now read and respond forever
