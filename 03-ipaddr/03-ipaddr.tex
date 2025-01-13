@@ -14,6 +14,9 @@
 
 \TITLE{IP Addressing}
 
+\begin{itshape}
+This tutorial assumes you have completed the previous UDP and TCP client server exercises.
+\end{itshape}
 
 \MINOR{Outline}
 
@@ -23,14 +26,14 @@ In this tutorial you will
 
 \DOT Study how port numbers can be used for transport layer multiplexing
 
-This tutorial uses a pair of TCP client and server programs, which are the same as
-those for \NAME{TCP Client Server} tutorial.
 
 \SECTION{Network addresses}
 
 For this part of the exercise you will need to work with another student, with both your
 computers connected to the same network. This could be two PCs in the same CSIT lab, or
 two laptops connected to the same wireless network.
+
+The TCP client and server programs are the same.
 
 \STEP In a shell on each computer, type \NAME{ifconfig} on a Linux or Mac,
 \NAME{ipconfig} on MS Windows.
@@ -119,9 +122,42 @@ IP address.
 the client on what used to be the server.
 
 
+\SECTION{Port numbers}
+
+Shut down any servers still running.
+
+\STEP The client and server programs, UDP and TCP, all have a second CLI argument which
+is a port number. Start a TCP server with both network address and a new port number,
+\CODELINE{python tcpServer.py 0.0.0.0 6331}
+or
+\CODELINE{java TcpServer 0.0.0.0 6331}
+
+Run the client with just the IP address of the server: it will crash again with a
+connection exception. The IP address is correct, but transport layer
+connections are also identified by port number.
+
+Run the client again with the right port number as a second CLI argument:
+\CODELINE{python tcpServer.py 10.1.1.113 6331}
+or
+\CODELINE{java TcpServer 10.1.1.113 6331}
+Now it should work.
+
+How do clients know which port to use? This will be covered later in the course,
+but most common in the Internet are \NAME{well known} ports. A HTTP web server is TCP
+port 80, HTTPS is TCP port 443.
+A web server can be run on a different port, but then there has to be some way to
+tell the clients (web browsers) what it is. 
+
+
 \SECTION{Experiments}
 
-\emph{Optional}: Try using an IPv6 address for server and client.
+Can you start a TCP (or UDP) server with a port number between 1 and 1023?
+Once Upon A Time, before personal computers were common, only root/administrator accounts
+could run programs using port numbers in this range. Some modern systems still have this
+limitation.
+
+Try using an IPv6 address for server and client. What is the IPv6 equivalent
+to \texttt{0.0.0.0} ?
 
 
 \COPYRIGHT
