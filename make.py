@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
 # Python program to build COMP3310 Tutes zip
+# Usage: python make.py
 
-import sys
-import os, glob
+
+import glob, logging, os, sys, zipfile
 from os import path
 from glob import glob
-import zipfile
-import logging
 
 skipDirs = (
 	".hg",
@@ -29,7 +28,7 @@ def keep(fName):
 	return ext not in skipFiles
 
 
-ZipName = "comp3310-2024-tutes.zip"
+ZipName = "comp3310-2025-tutes.zip"
 
 root = "."
 if len(sys.argv) > 1:
