@@ -8,7 +8,7 @@
  *  (In other words, a HTTP request.) Then reads and prints
  *  lines from server until closed.
 
- *  Written by Hugh Fisher u9011925, ANU, 2024
+ *  Written by Hugh Fisher u9011925, ANU 2024-now
  *  Released under Creative Commons CC0 Public Domain Dedication
  *  This code may be freely copied and modified for any purpose
  */

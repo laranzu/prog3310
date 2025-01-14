@@ -20,11 +20,7 @@ In this tutorial you will
 
 \DOT Check the cryptographic signatures of files
 
-\DOT Find how many certificates your computer has
-
 \DOT Study a simple client program using an encrypted socket
-
-\DOT \emph{MAYBE} Set up an encrypted socket server
 
 
 \SECTION{Cryptographic Signatures}
@@ -57,44 +53,25 @@ line argument for example \texttt{SHA1}. How many bits are there in this signatu
 has not been tampered with. For this tutorial we will look at the site
 \CODELINE{https://openssl.org/source/}
 
-The file we are interested in is \texttt{openssl-3.30.tar.gz} but \textbf{don't}
+The file we are interested in is the source code for the OpenSSL library,
+which has a name similar to \texttt{openssl-3.3.2.tar.gz}
+(by the time of this tutorial, there will probably be a newer version)
+but \textbf{don't}
 download it straight away. Ask your tutor for a copy of the file, or for where
 a copy of the file is stored on the CECC lab computers.
 
-Next to the file name are signatures, at time of writing SHA256, PGP, and SHA1.
-You \textbf{should} download the two SHA signatures, each of which is a very
-short text file.
+Next to the file name are \NAME{Checksums}, at time of writing SHA256, PGP,
+and SHA1. You \textbf{should} download the two SHA signatures, each of which
+is a very short text file.
 
-Once you have your own copy of \texttt{openssl-3.30.tar.gz}, run the hash
+Once you have your own copy of \texttt{openssl-3.3.2.tar.gz} (or the current
+version for the tutorial), run the hash
 program on it with one of the SHA signature algorithms. Compare the printed
 result to the downloaded signature file. Do they match?
 
 If you download a copy of \texttt{openssl} from a different web site, such
-as a CDN or local archive, can you still use the signature?
-
-If a villain has access to the main OpenSSL web site and can upload their
-own versions, can you still trust the signature?
-
-
-\SECTION{Certificates part 1}
-
-\STEP Web server security (and other applications) depends on certificates
-and Certfication Authorities. Program \NAME{showCerts.py},
-no command line arguments, prints out the certificates on the host.
-Do this, and be prepared to scroll back up to see them all: a typical computer
-has fifty to over a hundred.
-
-\STEP The command line option \texttt{-v} will print out more details about
-each certificate instead of just a name. Do this.
-
-\textbf{Don't Panic}. We are not going to study all these fields in detail,
-and you don't have to remember what each one is for. The lesson to learn
-is that setting up a world wide system for secure network communication is
-complicated.
-
-The code for this program is not very useful, it exists only so the same
-tutorial instructions work on all the computers students are likely to have.
-(And there is no Java version because the code is awful.)
+as a CDN or local archive, can you still use the signature from the OpenSSL
+web site? Why?
 
 
 \SECTION{Secure sockets}
@@ -107,8 +84,8 @@ loopback.) Port 443 is for https, HTTP secure.
 
 \STEP The program for this section is \NAME{sslClient.py} or \NAME{SSLClient.java}.
 
-Have a quick look at the source code. This program is similar to the
-\texttt{TCP Client}
+Have a quick look at the source code. This program is similar to the client
+\texttt{TCP Client Server}
 tutorial exercise: it reads input lines, sends them to a server, and reads and
 prints any response. The most important new code is \texttt{openSSL}, which
 creates an encrypted socket connection to the server.
@@ -155,63 +132,6 @@ Secure network programming is both complicated and simple. As the certificates
 program shows, there are a lot of parts involved that all need to work together.
 As the secure socket program shows, it is not very difficult to create a more
 secure network connection when the underlying system has these parts.
-
-
-\SECTION{Secure servers}
-
-\begin{IMPORTANT}
-This part of the tutorial exercise is not quite finished. Sorry! Extra notes
-and instructions will be available Real Soon Now.
-\end{IMPORTANT}
-
-\STEP The program for this section is \NAME{sslServer.py} or \NAME{SSLServer.java}.
-This is similar to the TCP server from an earlier tutorial, but modified to
-respond to HTTP requests over an encrypted socket.
-
-\STEP First, test the program with a plain unencrypted TCP socket. Open the server
-program code and search for the comment \texttt{Use this for plain http test}
-in the function or method named \texttt{clientLoop}.
-
-There should be two lines of code that create a socket, one for SSL, one for
-standard unencrypted TCP. Change the code so that it creates a standard socket
-instead of SSL.
-
-Compile (Java) and run the server program: it should be listening on port 3310.
-
-Now open your favourite web browser and go to web site
-\CODELINE{http://localhost:3310}
-(Make sure it is \SQ{http}, not \SQ{https}).
-
-You should see the server program print out that it has received a request, and
-the web browser should show a very simple web page.
-
-\STEP Stop the server program. Change the code again so that it creates an SSL
-socket, not standard. Compile (Java) and run again.
-
-Now try your web browser with
-\CODELINE{https://localhost:3310}
-You will get a warning of some kind.
-
-The problem is that the server has no certificate, so cannot be verified.
-It is not enough to say \DQ{I am encrypted server, you can trust me}.
-
-
-\SECTION{Certificates part 2}
-
-Creating certificates is complicated with lots of fiddly details. For this tutorial
-we have a pregenerated certificate thanks to Felix.
-
-\texttt{localhost.crt} and \texttt{localhost.key} are the certificate and private key
-for this particular computer. \\
-\texttt{ca.crt} and \texttt{ca.key} identify the \emph{certificate authority}, the
-organisation that created the certificate. \\
-And \texttt{fullchain.pem} is the two certificates glued together into a
-single file.
-
-If you want to recreate these files yourself you will need the \texttt{openssl} software.
-It is installed on the CECC lab PCs, and as open source software can be downloaded
-and installed on your own computer for free.
-The commands are in shell script \texttt{make3310cert.sh}
 
 If you decide you do want to learn more about how all this works, CECC
 has a course for you: COMP3704 Network Security.
