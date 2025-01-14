@@ -77,6 +77,14 @@ If the client cannot ping the server, you may have mistyped the address.
 If not, repeat the \NAME{ifconfig} or \NAME{ipconfig} on the server computer and try
 different addresses until you get the right one.
 
+For Wireshark, you will need to capture packets on the external interface, not the loopback
+as in previous tutorials. Since computers today are often very \SQ{chatty}, a filter
+\CODELINE{tcp and host 10.1.1.113}
+will show only TCP packets to or from the host in question.
+
+
+\SECTION{TCP client and server}
+
 \STEP Run the server program on the server computer (in the example above, the computer
 with IP address \texttt{10.1.1.113}) with no command line arguments.
 \CODELINE{python tcpServer.py}
@@ -147,6 +155,8 @@ but most common in the Internet are \NAME{well known} ports. A HTTP web server
 will be TCP port 80, HTTPS TCP port 443.
 A web server can be run on a different port, but then there has to be some way to
 tell the clients (web browsers) what it is.
+
+In Wireshark, which TCP packets have port numbers?
 
 
 \SECTION{Optional}
