@@ -1,0 +1,87 @@
+
+%   COMP3310 DV routing tutorial
+%   Written by Hugh Fisher, ANU, 2024-
+%   Creative Commons CC-BY-NC-SA-4.0 license
+
+%   LaTeX markup for XeTeX with a standard texlive distribution
+%   Command to build:
+%       xelatex 0N-routing.tex
+
+\input{../common/formatting}
+
+\begin{document}
+
+\TITLE{Distance Vector Routing}
+
+\MINOR{Outline}
+
+In this tutorial you will
+
+\DOT See how distance vector routers self-configure
+
+\DOT See how routers adapt \DSH or not \DSH to changes
+
+\DOT Try sending bad information to routers
+
+\begin{IMPORTANT}
+The instructions for this exercise will have even less detail
+than usual. Routing is inherently dynamic, unpredictable, and
+messy; so the most likely answer to any questions you have is
+\DQ{try it and see what happens}.
+\end{IMPORTANT}
+
+
+\SECTION{Setup}
+
+\MINOR{Location}
+
+This exercise is designed for the Computer Science Linux labs.
+It is not a stand alone simulator that runs on one machine.
+Instead this is designed for a LAN with at least four PCs,
+each of which becomes a \SQ{router}.
+
+Ideally there are at least four people. You should be sitting
+close together so you can easily see what is happening on
+other screens.
+
+If there are less than four, you can log on to more than one
+PC in a lab and run the same program on each. On all but one
+PC, use \texttt{Ctrl-Alt-F1} before logging on to get
+a plain text console, no GUI. (For some reason the keyboard
+may stop working on other PCs if you have multiple GUI sessions
+open.) After logging out, \texttt{Ctrl-Alt-F7} to restore
+the GUI.
+
+The program is written in Python using just the standard
+library so could run elsewhere. All of the hosts would need
+to be connected to a single Ethernet LAN or a single WiFi access
+point, with multicast. Because of this it probably won't work
+on the ANU campus WiFi.
+
+You don't need \NAME{WireShark} or \NAME{tcpdump}, as these
+\SQ{routers} are not using a standard protocol and will print
+out what is happening for you.
+
+
+\SECTION{Running a router}
+
+Download and unzip the tutorial exercise file. As usual, this is
+a CLI program so open a shell and \texttt{cd} into the new directory.
+You will find some Python code, a couple of text files, and a
+copy of these instructions.
+
+\SECTION{Router links}
+
+
+\SECTION{Route formation}
+
+
+\SECTION{Router adaptation}
+
+
+\SECTION{Misinformation}
+
+
+\COPYRIGHT
+
+\end{document}
