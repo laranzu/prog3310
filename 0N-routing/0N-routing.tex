@@ -90,7 +90,7 @@ Stop your router and read on.
 
 By default the router program prints out quite a lot about
 what is happening and what it is doing. After your first
-few runs you should use
+few runs you can use
 
 \CODELINE{python dvRouter.py -q}
 
@@ -199,7 +199,7 @@ entry, the lowest cost, is what would be used for actual traffic.
 After a while the routers should all stablise, with no changes to
 the routing tables.
 
-\DOT Of the first entries for each domain, what is the longest
+\DOT Of the first entries for the domains, what is the longest
 (highest cost) path in the network?
 
 \DOT Are the routes symmetrical? Meaning, if router A wants to
@@ -223,7 +223,11 @@ become stable again?
 
 \DOT Are there any \DQ{count to infinity} loops? These will
 show up as two or more routers steadily increasing the cost to
-that domain by +1 each beat.
+a domain by +1 each beat.
+
+
+\STEP
+Start the router again. Watch what happens on the other routers.
 
 
 \STEP
@@ -231,6 +235,45 @@ Shut down all the routers.
 
 
 \SECTION{Misinformation}
+
+For this section you can use the \texttt{-q} option on some or
+all of the routers to simplify the output.
+
+\STEP
+With all the routers shut down, pick one router to be \SQ{evil}
+and one other domain as the \SQ{target}.
+
+\STEP
+Start all the non-evil routers and wait for them to stabilise.
+
+Meanwhile, on the evil router, open file \texttt{evil.routes}.
+Add a line
+
+\CODELINE{\textit{target-domain} : -4}
+
+\STEP
+Start the evil router with an extra CLI option
+
+\CODELINE{python dvRouter.py -q -evil evil.routes}
+
+The first route table printed will now have two entries, not one.
+
+Watch what happens as this spreads across the links.
+
+\begin{IMPORTANT}
+This really happened in the early Internet, by malfunction rather
+than malicious. A \DQ{black hole} router attracts packets to it
+which then vanish.
+
+It is still a problem in today's Internet. Organisations and
+countries have to receive routing messages from other organisations
+and countries, and they might not trust them all.
+\end{IMPORTANT}
+
+\SECTION{Experiments}
+
+\MINOR{Persistence}
+
 
 
 \COPYRIGHT
