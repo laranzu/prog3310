@@ -28,7 +28,7 @@ def keep(fName):
 	return ext not in skipFiles
 
 
-ZipName = "comp3310-2025-tutes.zip"
+ZipName = "comp3310-2026-tutes.zip"
 
 root = "."
 if len(sys.argv) > 1:
