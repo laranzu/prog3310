@@ -68,7 +68,7 @@ directory. (If you are logged onto more than one PC, do the
 same on the others.) You will find some Python modules, a few
 text files, and a copy of these instructions.
 
-\MINOR{Starting and stopping}
+\textbf{Starting and stopping}
 
 To start the simulation on your machine, just run the program.
 
@@ -86,7 +86,7 @@ don't need to tell anyone else that you are doing so.
 
 Stop your router and read on.
 
-\MINOR{Options}
+\textbf{Options}
 
 By default the router program prints out quite a lot about
 what is happening and what it is doing. After your first
@@ -109,11 +109,11 @@ For this exercise each router program will simulate being a
 \NAME{domain}, an isolated network, that is connected to
 other routers by point to point \NAME{links}.
 
-\MINOR{Domains}
+\textbf{Domains}
 
 When the router program starts it prints out its own
 router name, usually the name for its own IP address;
-and its own domain. The \SQ{domain} is an imaginary
+and its own domain, an imaginary
 subnet / area / zone that needs a router.
 
 The domain name is randomly picked from a text file
@@ -124,7 +124,7 @@ and restart your router during the simulation.
 It is OK if more than one router picks the same domain.
 Real networks often have multiple routers for redundancy.
 
-\MINOR{Links}
+\textbf{Links}
 
 A router is the gateway between one collection of hosts that
 can all talk to each locally, called a \NAME{domain} for this
@@ -199,10 +199,10 @@ entry, the lowest cost, is what would be used for actual traffic.
 After a while the routers should all stablise, with no changes to
 the routing tables.
 
-\DOT Of the first entries for the domains, what is the longest
+Of the first entries for the domains, what is the longest
 (highest cost) path in the network?
 
-\DOT Are the routes symmetrical? Meaning, if router A wants to
+Are the routes symmetrical? Meaning, if router A wants to
 reach the domain for router B, is its cost the same as the cost
 for router B to reach the domain for router A?
 
@@ -210,18 +210,18 @@ for router B to reach the domain for router A?
 \STEP
 Start the remaining router(s) in the group.
 
-\DOT How many beats does it take for all the routing tables to
+How many beats does it take for all the routing tables to
 become stable again?
 
-\DOT Do some routers stabilise faster than others?
+Do some routers stabilise faster than others?
 
 
 \STEP
 \texttt{Ctrl-C} one router and watch what happens to the others.
 
-\DOT How long does it take for other routers to notice?
+How long does it take for other routers to notice?
 
-\DOT Are there any \DQ{count to infinity} loops? These will
+Are there any \DQ{count to infinity} loops? These will
 show up as two or more routers steadily increasing the cost to
 a domain by +1 each beat.
 
@@ -239,11 +239,9 @@ Shut down all the routers.
 For this section you can use the \texttt{-q} option on some or
 all of the routers to simplify the output.
 
-\STEP
 With all the routers shut down, pick one router to be \SQ{evil}
 and one other domain as the \SQ{target}.
 
-\STEP
 Start all the non-evil routers and wait for them to stabilise.
 
 Meanwhile, on the evil router, open file \texttt{evil.routes}.
@@ -251,7 +249,6 @@ Add a line
 
 \CODELINE{\textit{target-domain} : -4}
 
-\STEP
 Start the evil router with an extra CLI option
 
 \CODELINE{python dvRouter.py -q -evil evil.routes}
@@ -261,20 +258,51 @@ The first route table printed will now have two entries, not one.
 Watch what happens as this spreads across the links.
 
 \begin{IMPORTANT}
-This really happened in the early Internet, by malfunction rather
+This really happened to the early Internet, by malfunction rather
 than malicious. A \DQ{black hole} router attracts packets to it
 which then vanish.
 
-It is still a problem in today's Internet. Organisations and
+It is still a problem today. Organisations and
 countries have to receive routing messages from other organisations
 and countries, and they might not trust them all.
 \end{IMPORTANT}
 
-\SECTION{Experiments}
 
-\MINOR{Persistence}
+\SECTION{Optional}
 
 
+\textbf{Poison Reverse}
+
+When a link to another router is lost, a distance vector router
+can respond in a few different ways. The program in this exercise
+just forgets about the route.
+
+The code that controls this is in method \texttt{drop}, about
+line 200 in \texttt{dvRouter.py}. There are two possibilities,
+one of which needs to be uncommented. Make the change, study
+the code, and run the route formation exercise again to see
+what happens when routers disappear.
+
+
+\textbf{Persistence}
+
+Every time the router restarts it must rebuild the routing table
+based on messages as they are received, which can take a long time.
+(By computer standards, twenty seconds is a very long time.)
+
+Modify the router so that at the end of
+each beat it writes the current routing table out to a file,
+perhaps named \texttt{cache.routes}. When the router starts to
+run it should check if this file exists and if so load all the
+entries from it. (Use the method \texttt{addFixedRoutes} as a
+starting point, with a third router name field in each line.)
+
+Persistent configuration helps a lot when a router crashes due
+to a power blip and restarts a few seconds later. It's not so
+helpful if the router is shut down, shipped to another continent,
+and then switched on again.
+
+%%
 
 \COPYRIGHT
 
