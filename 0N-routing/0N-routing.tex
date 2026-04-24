@@ -60,14 +60,13 @@ You don't need \NAME{WireShark} or \NAME{tcpdump}, as these
 \SQ{routers} are not using a standard protocol and will print
 out what is happening for you.
 
+\SECTION{Running a router}
+
 Download and unzip the tutorial exercise file. As usual, this
 is a CLI program so open a shell and \texttt{cd} into the new
 directory. (If you are logged onto more than one PC, do the
 same on the others.) You will find some Python modules, a few
 text files, and a copy of these instructions.
-
-
-\SECTION{Running a router}
 
 \MINOR{Starting and stopping}
 
@@ -89,10 +88,9 @@ Stop your router and read on.
 
 \MINOR{Options}
 
-By default the router program prints out what is happening
-and what it is doing. If there are a lot of routers being
-run, there will be a lot of output and it can be hard to
-follow. You can start with
+By default the router program prints out quite a lot about
+what is happening and what it is doing. After your first
+few runs you should use
 
 \CODELINE{python dvRouter.py -q}
 
@@ -106,7 +104,7 @@ will list them all.
 \SECTION{Domains and links}
 
 Each Computer Science lab is a single subnet, so the PCs
-can talk directly to each other. No routing required.
+can talk directly to each other, no routing required.
 For this exercise each router program will simulate being a
 \NAME{domain}, an isolated network, that is connected to
 other routers by point to point \NAME{links}.
@@ -114,8 +112,8 @@ other routers by point to point \NAME{links}.
 \MINOR{Domains}
 
 When the router program starts it prints out its own
-\NAME{router name}, usually the name for its own IP address;
-and its own \NAME{domain}. A \SQ{domain} is an imaginary
+router name, usually the name for its own IP address;
+and its own domain. The \SQ{domain} is an imaginary
 subnet / area / zone that needs a router.
 
 The domain name is randomly picked from a text file
@@ -135,7 +133,7 @@ between routers are often called \NAME{links} but they are
 really just another network cable.
 
 Real routers detect their links by counting the plugged in
-Ethernet (or whatever) cables and checking configuration files.
+Ethernet (or whatever) cables and testing if they connect.
 For this exercise the programs send messages back and forth,
 until after ten to thirty seconds every router will have at
 least one \SQ{link}. They won't have links to every other router,
@@ -152,8 +150,84 @@ cheating going on underneath.
 
 \SECTION{Route formation}
 
+After all that explanation, it's finally time to do some routing.
 
-\SECTION{Router adaptation}
+\STEP
+A routing exercise needs multiple routers, but the amount of
+output to read will keep growing. If there are more than about
+eight, it may be best to divide into smaller groups by using
+different link multicast addresses for each.
+
+The default group uses address \texttt{224.0.0.70}. You can change
+this by running the program with
+
+\CODELINE{python dvRouter.py -mcast 224.0.0.71}
+
+Only routers using the same multicast address will form links
+to each other.
+
+
+\STEP
+About three-quarters of the people in your group should start their
+routers at more or less the same time. Don't use \texttt{-q}, the
+more detailed output will be useful.
+
+A router starts by printing out its own name and domain, and then
+the initial routing table. This should look something like:
+
+\begin{CODE}\begin{verbatim}
+Router: nanotech Domain: ENCOM
+...
+Routing table
+  ENCOM                   : nanotech        :  0
+\end{verbatim}\end{CODE}
+
+A distance vector router starts up knowing only who it is and
+its own domain, which is zero network hops away.
+
+
+\STEP
+The routers will establish links, and start receiving cost
+tables from other routers. Each \SQ{beat} the routing table gets
+updated based on the new costs from other routers. Start counting
+the beats for your router and how many changes are made each time.
+
+The router prints out its entire routing table, which will usually
+have multiple entries for each domain, sorted by cost. The first
+entry, the lowest cost, is what would be used for actual traffic.
+
+After a while the routers should all stablise, with no changes to
+the routing tables.
+
+\DOT Of the first entries for each domain, what is the longest
+(highest cost) path in the network?
+
+\DOT Are the routes symmetrical? Meaning, if router A wants to
+reach the domain for router B, is its cost the same as the cost
+for router B to reach the domain for router A?
+
+
+\STEP
+Start the remaining router(s) in the group.
+
+\DOT How many beats does it take for all the routing tables to
+become stable again?
+
+\DOT Do some routers stabilise faster than others?
+
+
+\STEP
+\texttt{Ctrl-C} one router and watch what happens to the others.
+
+\DOT How long does it take for other routers to notice?
+
+\DOT Are there any \DQ{count to infinity} loops? These will
+show up as two or more routers steadily increasing the cost to
+that domain by +1 each beat.
+
+
+\STEP
+Shut down all the routers.
 
 
 \SECTION{Misinformation}
