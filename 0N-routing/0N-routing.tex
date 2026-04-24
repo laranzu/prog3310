@@ -33,15 +33,13 @@ messy; so the most likely answer to any questions you have is
 
 \SECTION{Setup}
 
-\MINOR{Location}
-
 This exercise is designed for the Computer Science Linux labs.
 It is not a stand alone simulator that runs on one machine.
-Instead this is designed for a LAN with at least four PCs,
+Instead this is designed for a LAN with multiple PCs,
 each of which becomes a \SQ{router}.
 
 Ideally there are at least four people. You should be sitting
-close together so you can easily see what is happening on
+close together so you can see what is happening on
 other screens.
 
 If there are less than four, you can log on to more than one
@@ -62,15 +60,94 @@ You don't need \NAME{WireShark} or \NAME{tcpdump}, as these
 \SQ{routers} are not using a standard protocol and will print
 out what is happening for you.
 
+Download and unzip the tutorial exercise file. As usual, this
+is a CLI program so open a shell and \texttt{cd} into the new
+directory. (If you are logged onto more than one PC, do the
+same on the others.) You will find some Python modules, a few
+text files, and a copy of these instructions.
+
 
 \SECTION{Running a router}
 
-Download and unzip the tutorial exercise file. As usual, this is
-a CLI program so open a shell and \texttt{cd} into the new directory.
-You will find some Python code, a couple of text files, and a
-copy of these instructions.
+\MINOR{Starting and stopping}
 
-\SECTION{Router links}
+To start the simulation on your machine, just run the program.
+
+\CODELINE{python dvRouter.py}
+
+Note that there is no configuration, no coordination with anyone
+else. Ideally a router can bootstrap / auto configure / self
+configure itself every time it is switched on and never need
+human intervention.
+
+This program will start printing out messages. (Real routers
+are usually in a rack somewhere and nobody looks at them.)
+It will keep running until you \texttt{Ctrl-C}, and again you
+don't need to tell anyone else that you are doing so.
+
+Stop your router and read on.
+
+\MINOR{Options}
+
+By default the router program prints out what is happening
+and what it is doing. If there are a lot of routers being
+run, there will be a lot of output and it can be hard to
+follow. You can start with
+
+\CODELINE{python dvRouter.py -q}
+
+which means \DQ{shut up and just show me the routing tables}.
+
+There's also a \texttt{-debug} option which will print out
+enormous amounts of detail, and a few others. \texttt{-help}
+will list them all.
+
+
+\SECTION{Domains and links}
+
+Each Computer Science lab is a single subnet, so the PCs
+can talk directly to each other. No routing required.
+For this exercise each router program will simulate being a
+\NAME{domain}, an isolated network, that is connected to
+other routers by point to point \NAME{links}.
+
+\MINOR{Domains}
+
+When the router program starts it prints out its own
+\NAME{router name}, usually the name for its own IP address;
+and its own \NAME{domain}. A \SQ{domain} is an imaginary
+subnet / area / zone that needs a router.
+
+The domain name is randomly picked from a text file
+(\texttt{domains.txt}), but the router program on the same
+PC will always pick the same domain. This is so you can stop
+and restart your router during the simulation.
+
+It is OK if more than one router picks the same domain.
+Real networks often have multiple routers for redundancy.
+
+\MINOR{Links}
+
+A router is the gateway between one collection of hosts that
+can all talk to each locally, called a \NAME{domain} for this
+exercise; and the routers for other domains. The connections
+between routers are often called \NAME{links} but they are
+really just another network cable.
+
+Real routers detect their links by counting the plugged in
+Ethernet (or whatever) cables and checking configuration files.
+For this exercise the programs send messages back and forth,
+until after ten to thirty seconds every router will have at
+least one \SQ{link}. They won't have links to every other router,
+just a few, so some domains will be more than one network
+hop away if there are many routers.
+
+\begin{IMPORTANT}
+The \SQ{routers} have to be on the same LAN to create simulated
+links, but the actual routing protocol runs entirely over point
+to point (TCP) connections. There is no broadcast / multicast
+cheating going on underneath.
+\end{IMPORTANT}
 
 
 \SECTION{Route formation}
