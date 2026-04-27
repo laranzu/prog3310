@@ -64,6 +64,9 @@ public class MCastChannel {
         this.output = new MulticastSocket(this.address.getPort());
         this.output.connect(this.address);
 
+        // Own source address for detecting loopbacks
+        this.srcAddr = this.output.getLocalAddress();
+
         log.fine("MCastChannel sockets created");
      }
 
@@ -81,6 +84,7 @@ public class MCastChannel {
         log.setLevel(Level.FINE);
         try {
             MCastChannel chan = new MCastChannel("224.0.0.70", 3310);
+            log.info(String.format("Source address on send %s", chan.srcAddr.toString()));
             chan.close();
         } catch (Exception e) {
             System.out.println(e.toString());
