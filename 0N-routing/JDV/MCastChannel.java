@@ -30,9 +30,9 @@ public class MCastChannel {
 
     // Group address and interface
     public InetSocketAddress    address;
-    public NetworkInterface  iface;
+    public NetworkInterface     iface;
     // Address (non-multicast) we send as
-    public SocketAddress     srcAddr;
+    public InetSocketAddress    srcAddr;
 
     protected int   seqNo;
 
@@ -68,7 +68,7 @@ public class MCastChannel {
         this.output.joinGroup(this.address, this.iface);
         this.output.connect(this.address);
         // Own source address for detecting loopbacks
-        this.srcAddr = this.output.getLocalSocketAddress();
+        this.srcAddr = (InetSocketAddress)this.output.getLocalSocketAddress();
         log.fine(String.format("Source address on send %s", this.srcAddr.toString()));
 
         log.fine("MCastChannel sockets created");
