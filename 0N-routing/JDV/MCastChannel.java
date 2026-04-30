@@ -28,9 +28,11 @@ public class MCastChannel {
     public MulticastSocket  input;
     public MulticastSocket  output;
 
-    protected InetSocketAddress address;
+    // Group address and interface
+    public InetSocketAddress    address;
     protected NetworkInterface  iface;
-    protected InetAddress       srcAddr;
+    // Address (non-multicast) we send as
+    protected SocketAddress     srcAddr;
 
     protected int   seqNo;
 
@@ -62,14 +64,40 @@ public class MCastChannel {
 
         log.fine(String.format("Create output socket for %s : %d",
                     this.address.getHostString(), this.address.getPort()));
-        this.output = new MulticastSocket(this.address.getPort());
+        this.output = new MulticastSocket();
+        this.output.joinGroup(this.address, this.iface);
         this.output.connect(this.address);
-
         // Own source address for detecting loopbacks
-        this.srcAddr = this.output.getLocalAddress();
+        this.srcAddr = this.output.getLocalSocketAddress();
+        log.fine(String.format("Source address on send %s", this.srcAddr.toString()));
 
         log.fine("MCastChannel sockets created");
      }
+
+    public void send(String message)
+            throws IOException
+    {
+        byte[] data;
+        DatagramPacket packet;
+
+        data = message.getBytes("UTF-8");
+        packet = new DatagramPacket(data, data.length);
+        this.output.send(packet);
+    }
+
+    public DatagramPacket recv()
+            throws IOException
+    {
+        DatagramPacket packet;
+
+        packet = new DatagramPacket(new byte[PKT_SIZE], PKT_SIZE);
+        try {
+            this.input.receive(packet);
+            return packet;
+        } catch (SocketTimeoutException e) {
+            return null;
+        }
+    }
 
     protected void close()
     {
@@ -85,7 +113,6 @@ public class MCastChannel {
         log.setLevel(Level.FINE);
         try {
             MCastChannel chan = new MCastChannel("224.0.0.70", 3310);
-            log.info(String.format("Source address on send %s", chan.srcAddr.toString()));
             chan.close();
         } catch (Exception e) {
             System.out.println(e.toString());
