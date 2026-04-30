@@ -2,6 +2,9 @@
 """
     Main program for Distance Vector routing simulator.
 
+    Run as a module from parent directory
+        python -m PyDV.dvRouter [ args ]
+
     CLI args
         -name NAME      Router identifier, defaults hostname
         -domain NAME    Router domain, default to random from domains.txt

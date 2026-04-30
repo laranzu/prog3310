@@ -12,6 +12,10 @@
         links.stop()
     where the-routing-object is a delegate that handles new links.
     See the LinkDelegate spec later in code.
+
+    Can run stand alone for testing from parent dir
+        python -m PyDV.links
+
 """
 
 #   There is no configuration needed other than a multicast group address.
