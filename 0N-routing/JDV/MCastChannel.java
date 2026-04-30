@@ -56,6 +56,7 @@ public class MCastChannel {
                     this.address.getHostString(), this.address.getPort()));
         this.input = new MulticastSocket(this.address.getPort());
         this.iface = NetworkInterface.getByInetAddress(this.address.getAddress());
+        // Joining is so much easier in Java than in Python
         this.input.joinGroup(this.address, this.iface);
         this.input.setSoTimeout(1 * 1000);
 
