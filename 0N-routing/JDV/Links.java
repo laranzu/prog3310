@@ -127,16 +127,16 @@ public class Links {
     /** Accept incoming messages, decide how to respond */
 
     static class Listener implements Runnable {
-        private MCastChannel        group;
-        private InetAddrQueue messageQ;
-        private LinkDelegate        delegate;
+        private MCastChannel    group;
+        private InetAddrQueue   messages;
+        private LinkDelegate    delegate;
 
         Listener(MCastChannel mcastChan,
-                    InetAddrQueue messages,
+                    InetAddrQueue messageQueue,
                     LinkDelegate linkDelegate)
         {
             this.group = mcastChan;
-            this.messageQ = messages;
+            this.messages = messageQueue;
             this.delegate = linkDelegate;
         }
         
@@ -188,7 +188,7 @@ public class Links {
                 return;
             // Delayed response, handled by joiner thread
             try {
-                this.messageQ.add(sender);
+                this.messages.add(sender);
             } catch (IllegalStateException e) {
                 log.warning("Link queue full, drop message");
             }
@@ -243,13 +243,13 @@ public class Links {
     /** Send JOIN and LINK requests */
 
     static class Joiner implements Runnable {
-        private MCastChannel        group;
-        private InetAddrQueue messageQ;
+        private MCastChannel  group;
+        private InetAddrQueue messages;
 
-        Joiner(MCastChannel mcastChan, InetAddrQueue messages)
+        Joiner(MCastChannel mcastChan, InetAddrQueue messageQueue)
         {
             this.group = mcastChan;
-            this.messageQ = messages;
+            this.messages = messageQueue;
         }
 
         public void run()
@@ -264,7 +264,7 @@ public class Links {
             while (Links.running && ! Thread.currentThread().isInterrupted()) {
                 try {
                     // Join to process?
-                    request = this.messageQ.poll(1, TimeUnit.SECONDS);
+                    request = this.messages.poll(1, TimeUnit.SECONDS);
                     if (request != null) {
                         this.respondJoin(request);
                     }
