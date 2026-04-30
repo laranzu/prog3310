@@ -38,6 +38,7 @@
 package JDV;
 
 import java.util.logging.*;
+import java.util.concurrent.*;
 import java.io.*;
 import java.net.*;
 
@@ -67,6 +68,7 @@ public class Links {
     static int joinDelay = 4000;
     static final int QUEUE_SIZE = 64;
     static LinkDelegate delegate;
+    static ArrayBlockingQueue messageQ;
 
     //****  Utility
 
@@ -78,9 +80,12 @@ public class Links {
 
     /** Start link protocol */
     static void start(LinkDelegate programDelegate)
+            throws UnknownHostException, IOException
     {
         log.info("Start link creation");
+        channel = new MCastChannel(mcastGroup, mcastPort);
         delegate = programDelegate;
+        messageQ = new ArrayBlockingQueue(QUEUE_SIZE);
     }
 
     /** And stop */
@@ -97,6 +102,7 @@ public class Links {
         log.setLevel(Level.FINE);
         try {
             Links.start(null);
+            Thread.sleep(60 * 1000);
             Links.stop();
         } catch (Exception e) {
             System.out.println(e.toString());
