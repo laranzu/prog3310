@@ -122,7 +122,7 @@ public class Links {
     /** Accept incoming messages, decide how to respond */
 
     static class Listener implements Runnable {
-        private MCastChannel        chan;
+        private MCastChannel        group;
         private ArrayBlockingQueue<InetSocketAddress> messageQ;
         private LinkDelegate        delegate;
 
@@ -130,7 +130,7 @@ public class Links {
                     ArrayBlockingQueue<InetSocketAddress> messages,
                     LinkDelegate linkDelegate)
         {
-            this.chan = mcastChan;
+            this.group = mcastChan;
             this.messageQ = messages;
             this.delegate = linkDelegate;
         }
@@ -142,15 +142,15 @@ public class Links {
             InetSocketAddress   sender;
 
             log.fine(String.format("Start link listener %s",
-                        this.chan.address.toString()));
+                        this.group.address.toString()));
             while (Links.running && ! Thread.currentThread().isInterrupted()) {
                 try {
-                    packet = chan.recv();
+                    packet = group.recv();
                     if (packet == null)
                         continue; // Timeout
                     //Multicast loopback is (probably) on so we get copies of everything we send
                     sender = (InetSocketAddress)packet.getSocketAddress();
-                    if (sender.equals(this.chan.srcAddr))
+                    if (sender.equals(this.group.srcAddr))
                         continue;
                     // OK, what do we do?
                     msg = new String(packet.getData(), 0,
@@ -196,12 +196,12 @@ public class Links {
 
             // Meant for us?
             try {
-                addr = msg.split(" ")[3].strip();
+                addr = msg.split(" ")[1].strip();
             } catch (ArrayIndexOutOfBoundsException e) {
                 log.warning(String.format("No address in %s", msg));
                 return;
             }
-            if (! addr.equals(linkAddr(this.chan.srcAddr)))
+            if (! addr.equals(linkAddr(this.group.srcAddr)))
                 return;
             // May already be linked, or someone else may have already
             // responded to our JOIN
@@ -212,7 +212,7 @@ public class Links {
                 Links.addLink(linkID);
                 if (this.delegate != null)
                     this.delegate.newLink(linkID);
-                this.chan.send(String.format("LACK %s", linkID));
+                this.group.send(String.format("LACK %s", linkID));
             } else {
                 log.fine(String.format("Ignore link from %s", sender.toString()));
             }
@@ -224,7 +224,7 @@ public class Links {
 
             // Meant for us?
             addr = msg.split(" ")[1].strip();
-            if (! addr.equals(linkAddr(this.chan.srcAddr)))
+            if (! addr.equals(linkAddr(this.group.srcAddr)))
                 return;
             linkID = linkAddr(sender);
             // Must be in response to our offer, so always add
@@ -238,12 +238,12 @@ public class Links {
     /** Send JOIN and LINK requests */
 
     static class Joiner implements Runnable {
-        private MCastChannel        chan;
+        private MCastChannel        group;
         private ArrayBlockingQueue<InetSocketAddress>  messageQ;
 
         Joiner(MCastChannel mcastChan, ArrayBlockingQueue<InetSocketAddress> messages)
         {
-            this.chan = mcastChan;
+            this.group = mcastChan;
             this.messageQ = messages;
         }
 
@@ -253,7 +253,7 @@ public class Links {
             long nextJoin, now;
 
             log.fine(String.format("Start link joiner %s",
-                        this.chan.address.toString()));
+                        this.group.address.toString()));
             // Initial request straight away
             nextJoin = Links.clock() - 1;
             while (Links.running && ! Thread.currentThread().isInterrupted()) {
@@ -267,7 +267,7 @@ public class Links {
                     if (Links.activeLinks.size() < Links.preferNumLinks) {
                         now = Links.clock();
                         if (now > nextJoin) {
-                            this.chan.send("JOIN");
+                            this.group.send("JOIN");
                             log.fine("Send JOIN");
                             nextJoin = now + Links.joinDelay;
                         }
@@ -290,7 +290,7 @@ public class Links {
             // also means we only respond to one JOIN at a time
             Thread.sleep((long)(Math.random() * Links.joinDelay) +
                             Links.activeLinks.size() * Links.joinDelay);
-            this.chan.send(String.format("LINK %s", linkAddr(request)));
+            this.group.send(String.format("LINK %s", linkAddr(request)));
             log.fine(String.format("Offer link to %s", request.toString()));
         }
     }
