@@ -102,6 +102,7 @@ public class Links {
         public void run()
         {
             DatagramPacket  packet;
+            String          msg;
 
             log.fine(String.format("Start link listener %s",
                         this.chan.address.toString()));
@@ -110,10 +111,13 @@ public class Links {
                     packet = chan.recv();
                     if (packet == null)
                         continue;
-                    log.fine(String.format("RECV %d bytes from %s",
-                            packet.getLength(), packet.getAddress().toString()));
+                    msg = new String(packet.getData(), 0,
+                                    packet.getLength(), "UTF-8");
+                    log.fine(String.format("RECV %s from %s",
+                            msg, packet.getSocketAddress().toString()));
                 } catch (IOException e) {
-                    log.severe(String.format("Links Listener error %s", e.toString()));
+                    log.severe(String.format("Links Listener error %s",
+                                                e.toString()));
                     // Stop links altogether, not just us
                     Links.running = false;
                     Thread.currentThread().interrupt();
