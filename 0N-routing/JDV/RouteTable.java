@@ -1,6 +1,5 @@
 
-/** Simple destination : hops table for routing simulator.
- *  Transmitted over individual links between routers.
+/** Complete set of possible routes on a single router.
  * 
  *  Written by Hugh Fisher, ANU, 2026
  *  Released under Creative Commons CC0 Public Domain Dedication
@@ -13,12 +12,9 @@ import java.util.logging.*;
 
 import static JDV.ProgramLogger.log;
 
-/** Keys are destination names (strings)
- *  Values are hop count
-*/
+public class RouteTable extends Hashtable<String, RouteEntry> {
 
-public class CostTable extends Hashtable<String, Integer> {
-    public CostTable()
+    public RouteTable()
     {
         super();
     }
