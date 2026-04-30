@@ -3,7 +3,8 @@
 
 package JDV;
 
-public class RouteEntry {
+public class RouteEntry
+        implements Comparable<RouteEntry> {
     public String domain;
     public String router;
     public int    cost;
@@ -19,5 +20,10 @@ public class RouteEntry {
     {
         return String.format("  %-24s: %-16s: %2d",
                 this.domain, this.router, this.cost);
+    }
+
+    public int compareTo(RouteEntry other)
+    {
+        return Integer.compare(this.cost, other.cost);
     }
 }
