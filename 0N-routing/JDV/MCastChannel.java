@@ -30,9 +30,9 @@ public class MCastChannel {
 
     // Group address and interface
     public InetSocketAddress    address;
-    protected NetworkInterface  iface;
+    public NetworkInterface  iface;
     // Address (non-multicast) we send as
-    protected SocketAddress     srcAddr;
+    public SocketAddress     srcAddr;
 
     protected int   seqNo;
 
