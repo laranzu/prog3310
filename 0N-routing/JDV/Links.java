@@ -55,6 +55,11 @@ public class Links {
         void newLink(String senderAddress);
     }
 
+    // Java really needs typedef
+    static class InetAddrQueue extends ArrayBlockingQueue<InetSocketAddress> {
+        public InetAddrQueue(int capacity) { super(capacity); }
+    };
+
     /**  Network config */
     static String       mcastGroup = "224.0.0.70";
     //static String       mcastGroup = "ff15::3310";
@@ -68,14 +73,14 @@ public class Links {
     static int      joinDelay = 4000;
     static final    int QUEUE_SIZE = 64;
     // Object that wants to know about links
-    static LinkDelegate         delegate;
+    static LinkDelegate delegate;
 
     /** The links */
-    static ArrayList<String>    activeLinks;
+    static ArrayList<String> activeLinks;
 
     /** Thread control */
     static boolean  running;
-    static ArrayBlockingQueue<InetSocketAddress> messageQ;
+    static InetAddrQueue messageQ;
     static Thread   listen;
     static Thread   output;
 
@@ -123,11 +128,11 @@ public class Links {
 
     static class Listener implements Runnable {
         private MCastChannel        group;
-        private ArrayBlockingQueue<InetSocketAddress> messageQ;
+        private InetAddrQueue messageQ;
         private LinkDelegate        delegate;
 
         Listener(MCastChannel mcastChan,
-                    ArrayBlockingQueue<InetSocketAddress> messages,
+                    InetAddrQueue messages,
                     LinkDelegate linkDelegate)
         {
             this.group = mcastChan;
@@ -239,9 +244,9 @@ public class Links {
 
     static class Joiner implements Runnable {
         private MCastChannel        group;
-        private ArrayBlockingQueue<InetSocketAddress>  messageQ;
+        private InetAddrQueue messageQ;
 
-        Joiner(MCastChannel mcastChan, ArrayBlockingQueue<InetSocketAddress> messages)
+        Joiner(MCastChannel mcastChan, InetAddrQueue messages)
         {
             this.group = mcastChan;
             this.messageQ = messages;
@@ -306,7 +311,7 @@ public class Links {
         activeLinks = new ArrayList<>();
         mcastChan = new MCastChannel(mcastGroup, mcastPort);
         delegate = programDelegate;
-        messageQ = new ArrayBlockingQueue<>(QUEUE_SIZE);
+        messageQ = new InetAddrQueue(QUEUE_SIZE);
         // Threads
         running = true;
         listen = new Thread(new Listener(mcastChan, messageQ, programDelegate));
@@ -338,7 +343,7 @@ public class Links {
         log.setLevel(Level.FINE);
         try {
             Links.start(null);
-            Thread.sleep(30 * 1000);
+            Thread.sleep(60 * 1000);
         } catch (Exception e) {
             System.out.println(e.toString());
         } finally {
