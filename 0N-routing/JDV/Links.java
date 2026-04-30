@@ -112,13 +112,12 @@ public class Links {
                     if (packet == null)
                         continue; // Timeout
                     //Multicast loopback is (probably) on so we get copies of everything we send
-                    if (packet.getSocketAddress().equals(this.chan.srcAddr)) {
-                        log.fine("Ignore message from self");
+                    if (packet.getSocketAddress().equals(this.chan.srcAddr))
                         continue;
-                    }
+                    // OK, what do we do?
                     msg = new String(packet.getData(), 0,
                                     packet.getLength(), "UTF-8");
-                    log.fine(String.format("RECV %s from %s",
+                    log.fine(String.format("Received %s from %s",
                             msg, packet.getSocketAddress().toString()));
                 } catch (IOException e) {
                     log.severe(String.format("Links Listener error %s",
