@@ -52,7 +52,7 @@ public class Links {
 
     /** The object passed to Links.start() */
     public interface LinkDelegate {
-        void newLink(InetAddress senderAddress);
+        void newLink(String senderAddress);
     }
 
     /**  Network config */
@@ -75,7 +75,7 @@ public class Links {
 
     /** Thread control */
     static boolean  running;
-    static ArrayBlockingQueue   messageQ;
+    static ArrayBlockingQueue<InetSocketAddress> messageQ;
     static Thread   listen;
     static Thread   output;
 
@@ -123,10 +123,11 @@ public class Links {
 
     static class Listener implements Runnable {
         private MCastChannel        chan;
-        private ArrayBlockingQueue  messageQ;
+        private ArrayBlockingQueue<InetSocketAddress> messageQ;
         private LinkDelegate        delegate;
 
-        Listener(MCastChannel mcastChan, ArrayBlockingQueue messages,
+        Listener(MCastChannel mcastChan,
+                    ArrayBlockingQueue<InetSocketAddress> messages,
                     LinkDelegate linkDelegate)
         {
             this.chan = mcastChan;
@@ -177,17 +178,55 @@ public class Links {
 
         protected void doJoin(String msg, InetSocketAddress sender)
         {
-
+            // Already linked?
+            if (Links.activeLinks.contains(linkAddr(sender)))
+                return;
+            // Delayed response, handled by joiner thread
+            try {
+                this.messageQ.add(sender);
+            } catch (IllegalStateException e) {
+                log.warning("Link queue full, drop message");
+            }
         }
 
         protected void doLink(String msg, InetSocketAddress sender)
+                throws IOException
         {
+            String addr, linkID;
 
+            // Meant for us?
+            addr = msg.split(" ")[1].strip();
+            if (! addr.equals(linkAddr(this.chan.srcAddr)))
+                return;
+            // May already be linked, or someone else may have already
+            // responded to our JOIN
+            linkID = linkAddr(sender);
+            if (Links.activeLinks.size() < Links.preferNumLinks &&
+                        ! Links.activeLinks.contains(linkID)) {
+                log.fine(String.format("Accept link from %s", linkID));
+                Links.addLink(linkID);
+                if (this.delegate != null)
+                    this.delegate.newLink(linkID);
+                this.chan.send(String.format("LACK %s", linkID));
+            } else {
+                log.fine(String.format("Ignore link from %s", sender.toString()));
+            }
         }
         
         protected void doAck(String msg, InetSocketAddress sender)
         {
+            String addr, linkID;
 
+            // Meant for us?
+            addr = msg.split(" ")[1].strip();
+            if (! addr.equals(linkAddr(this.chan.srcAddr)))
+                return;
+            linkID = linkAddr(sender);
+            // Must be in response to our offer, so always add
+            Links.addLink(linkID);
+            if (this.delegate != null)
+                this.delegate.newLink(linkID);
+            log.fine(String.format("Link acc from %s", sender.toString()));
         }
     }
 
@@ -238,9 +277,10 @@ public class Links {
             throws UnknownHostException, IOException
     {
         log.info("Start link creation");
+        activeLinks = new ArrayList<>();
         mcastChan = new MCastChannel(mcastGroup, mcastPort);
         delegate = programDelegate;
-        messageQ = new ArrayBlockingQueue(QUEUE_SIZE);
+        messageQ = new ArrayBlockingQueue<>(QUEUE_SIZE);
         // Threads
         running = true;
         listen = new Thread(new Listener(mcastChan, messageQ, programDelegate));
