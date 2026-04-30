@@ -106,17 +106,4 @@ public class MCastChannel {
         log.fine("Closed channel");
     }
 
-    /** For testing, can create a channel? */
-
-    public static void main(String[] args)
-    {
-        log.setLevel(Level.FINE);
-        try {
-            MCastChannel chan = new MCastChannel("224.0.0.70", 3310);
-            chan.close();
-        } catch (Exception e) {
-            System.out.println(e.toString());
-            System.exit(-1);   
-        }
-    }
 }

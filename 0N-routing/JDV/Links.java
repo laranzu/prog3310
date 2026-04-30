@@ -43,7 +43,6 @@ import java.io.*;
 import java.net.*;
 
 import static JDV.ProgramLogger.log;
-
 import JDV.MCastChannel;
 
 // Used as a singleton, not expecting to create more than one
@@ -73,7 +72,7 @@ public class Links {
     /** Thread control */
     static boolean  running;
     static Thread   listen;
-    static Thread   join;
+    static Thread   output;
 
     //****  Utility
 
@@ -83,7 +82,9 @@ public class Links {
         return System.nanoTime() / 1000000;
     }
 
-    //****  Handle incoming messages
+    //****  Internal threads
+
+    /** Accept incoming messages, decide how to respond */
 
     static class Listener implements Runnable {
         private MCastChannel        chan;
@@ -111,14 +112,58 @@ public class Links {
                         continue;
                     log.fine(String.format("RECV %d bytes from %s",
                             packet.getLength(), packet.getAddress().toString()));
-                } catch (Exception e) {
-                    log.warning(String.format("Link Listener ERR %s", e.toString()));
+                } catch (IOException e) {
+                    log.severe(String.format("Links Listener error %s", e.toString()));
+                    // Stop links altogether, not just us
+                    Links.running = false;
                     Thread.currentThread().interrupt();
                 }
             }
             log.fine("End link listener");
         }
     }
+
+    /** Send JOIN and LINK requests */
+
+    static class Joiner implements Runnable {
+        private MCastChannel        chan;
+        private ArrayBlockingQueue  messageQ;
+
+        Joiner(MCastChannel mcastChan, ArrayBlockingQueue messages)
+        {
+            this.chan = mcastChan;
+            this.messageQ = messages;
+        }
+
+        public void run()
+        {
+            long nextJoin, now;
+
+            log.fine(String.format("Start link joiner %s",
+                        this.chan.address.toString()));
+            // Initial request straight away
+            nextJoin = Links.clock() - 1;
+            while (Links.running && ! Thread.currentThread().isInterrupted()) {
+                try {
+                    now = Links.clock();
+                    if (now > nextJoin) {
+                        this.chan.send("JOIN");
+                        log.fine("Send JOIN");
+                        nextJoin += Links.joinDelay;
+                    }
+                } catch (IOException e) {
+                    log.severe(String.format("Links Joiner error %s", e.toString()));
+                    // Stop links altogether, not just us
+                    Links.running = false;
+                    Thread.currentThread().interrupt();
+                }
+            }
+            log.fine("End link joiner");
+        }
+    }
+
+    //****      Main control
+
 
     /** Start link protocol */
     static void start(LinkDelegate programDelegate)
@@ -131,7 +176,9 @@ public class Links {
         // Threads
         running = true;
         listen = new Thread(new Listener(mcastChan, messageQ, programDelegate));
+        output = new Thread(new Joiner(mcastChan, messageQ));
         listen.start();
+        output.start();
     }
 
     /** And stop */
@@ -141,6 +188,7 @@ public class Links {
         running = false;
         try {
             listen.join();
+            output.join();
         } catch (InterruptedException e) {
             log.fine("Links interrupted?");
         }
@@ -157,10 +205,11 @@ public class Links {
         try {
             Links.start(null);
             Thread.sleep(60 * 1000);
-            Links.stop();
+            Thread.currentThread().interrupt();
         } catch (Exception e) {
             System.out.println(e.toString());
-            System.exit(-1);   
+        } finally {
+            Links.stop();
         }
     }
 
