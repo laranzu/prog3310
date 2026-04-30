@@ -168,7 +168,7 @@ public class Links {
                 } catch (IOException e) {
                     log.severe(String.format("Links Listener error %s",
                                                 e.toString()));
-                    // Stop links altogether, not just us
+                    // Want other threads to stop as well
                     Links.running = false;
                     Thread.currentThread().interrupt();
                 }
@@ -195,7 +195,12 @@ public class Links {
             String addr, linkID;
 
             // Meant for us?
-            addr = msg.split(" ")[1].strip();
+            try {
+                addr = msg.split(" ")[3].strip();
+            } catch (ArrayIndexOutOfBoundsException e) {
+                log.warning(String.format("No address in %s", msg));
+                return;
+            }
             if (! addr.equals(linkAddr(this.chan.srcAddr)))
                 return;
             // May already be linked, or someone else may have already
@@ -234,9 +239,9 @@ public class Links {
 
     static class Joiner implements Runnable {
         private MCastChannel        chan;
-        private ArrayBlockingQueue  messageQ;
+        private ArrayBlockingQueue<InetSocketAddress>  messageQ;
 
-        Joiner(MCastChannel mcastChan, ArrayBlockingQueue messages)
+        Joiner(MCastChannel mcastChan, ArrayBlockingQueue<InetSocketAddress> messages)
         {
             this.chan = mcastChan;
             this.messageQ = messages;
@@ -244,6 +249,7 @@ public class Links {
 
         public void run()
         {
+            InetSocketAddress request;
             long nextJoin, now;
 
             log.fine(String.format("Start link joiner %s",
@@ -252,20 +258,40 @@ public class Links {
             nextJoin = Links.clock() - 1;
             while (Links.running && ! Thread.currentThread().isInterrupted()) {
                 try {
-                    now = Links.clock();
-                    if (now > nextJoin) {
-                        this.chan.send("JOIN");
-                        log.fine("Send JOIN");
-                        nextJoin += Links.joinDelay;
+                    // Join to process?
+                    request = this.messageQ.poll(1, TimeUnit.SECONDS);
+                    if (request != null) {
+                        this.respondJoin(request);
                     }
-                } catch (IOException e) {
+                    // More links?
+                    if (Links.activeLinks.size() < Links.preferNumLinks) {
+                        now = Links.clock();
+                        if (now > nextJoin) {
+                            this.chan.send("JOIN");
+                            log.fine("Send JOIN");
+                            nextJoin = now + Links.joinDelay;
+                        }
+                    }
+                } catch (IOException | InterruptedException e) {
                     log.severe(String.format("Links Joiner error %s", e.toString()));
-                    // Stop links altogether, not just us
+                    // Want other threads to stop as well
                     Links.running = false;
                     Thread.currentThread().interrupt();
                 }
             }
             log.fine("End link joiner");
+        }
+
+        /** Delayed response to JOIN */
+        protected void respondJoin(InetSocketAddress request)
+                throws InterruptedException, IOException
+        {
+            // Random delay, plus extra for each existing link. This sleep
+            // also means we only respond to one JOIN at a time
+            Thread.sleep((long)(Math.random() * Links.joinDelay) +
+                            Links.activeLinks.size() * Links.joinDelay);
+            this.chan.send(String.format("LINK %s", linkAddr(request)));
+            log.fine(String.format("Offer link to %s", request.toString()));
         }
     }
 
@@ -295,10 +321,10 @@ public class Links {
         log.fine("Stop Links threads");
         running = false;
         try {
-            listen.join();
             output.join();
+            listen.join();
         } catch (InterruptedException e) {
-            log.fine("Links interrupted?");
+            // Don't care
         }
 
         mcastChan.close();
