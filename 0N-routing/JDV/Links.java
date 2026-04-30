@@ -99,10 +99,26 @@ public class Links {
             this.delegate = linkDelegate;
         }
 
+        protected void doJoin(String msg, SocketAddress sender)
+        {
+
+        }
+
+        protected void doLink(String msg, SocketAddress sender)
+        {
+
+        }
+        
+        protected void doAck(String msg, SocketAddress sender)
+        {
+
+        }
+        
         public void run()
         {
             DatagramPacket  packet;
             String          msg;
+            SocketAddress   sender;
 
             log.fine(String.format("Start link listener %s",
                         this.chan.address.toString()));
@@ -112,13 +128,22 @@ public class Links {
                     if (packet == null)
                         continue; // Timeout
                     //Multicast loopback is (probably) on so we get copies of everything we send
-                    if (packet.getSocketAddress().equals(this.chan.srcAddr))
+                    sender = packet.getSocketAddress();
+                    if (sender.equals(this.chan.srcAddr))
                         continue;
                     // OK, what do we do?
                     msg = new String(packet.getData(), 0,
                                     packet.getLength(), "UTF-8");
                     log.fine(String.format("Received %s from %s",
                             msg, packet.getSocketAddress().toString()));
+                    if (msg.startsWith("JOIN"))
+                        this.doJoin(msg, sender);
+                    else if (msg.startsWith("LINK"))
+                        this.doLink(msg, sender);
+                    else if (msg.startsWith("LACK"))
+                        this.doAck(msg, sender);
+                    else
+                        log.warning(String.format("Link listener unknown message type: %s", msg));
                 } catch (IOException e) {
                     log.severe(String.format("Links Listener error %s",
                                                 e.toString()));
