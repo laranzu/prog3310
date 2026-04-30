@@ -231,7 +231,7 @@ public class Links {
             Links.addLink(linkID);
             if (this.delegate != null)
                 this.delegate.newLink(linkID);
-            log.fine(String.format("Link acc from %s", sender.toString()));
+            log.fine(String.format("Link ack from %s", sender.toString()));
         }
     }
 
@@ -338,8 +338,7 @@ public class Links {
         log.setLevel(Level.FINE);
         try {
             Links.start(null);
-            Thread.sleep(60 * 1000);
-            Thread.currentThread().interrupt();
+            Thread.sleep(30 * 1000);
         } catch (Exception e) {
             System.out.println(e.toString());
         } finally {
