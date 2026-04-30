@@ -37,6 +37,7 @@
 */
 package JDV;
 
+import java.util.*;
 import java.util.logging.*;
 import java.util.concurrent.*;
 import java.io.*;
@@ -66,11 +67,15 @@ public class Links {
     // Initial time between sending JOIN requests, millisecs
     static int      joinDelay = 4000;
     static final    int QUEUE_SIZE = 64;
+    // Object that wants to know about links
     static LinkDelegate         delegate;
-    static ArrayBlockingQueue   messageQ;
+
+    /** The links */
+    static ArrayList<String>    activeLinks;
 
     /** Thread control */
     static boolean  running;
+    static ArrayBlockingQueue   messageQ;
     static Thread   listen;
     static Thread   output;
 
@@ -80,6 +85,36 @@ public class Links {
     static long clock()
     {
         return System.nanoTime() / 1000000;
+    }
+
+    /** Identify links by IP address as string, no port */
+    static String linkAddr(InetSocketAddress nodeAddress)
+    {
+        return nodeAddress.getHostString();
+    }
+
+    /** Thread safe access to links */
+
+    static synchronized void addLink(String ipAddress)
+    {
+        if (! activeLinks.contains(ipAddress)) {
+            activeLinks.add(ipAddress);
+            log.info(String.format("PTP link #%d to %s",
+                    activeLinks.size(), ipAddress));
+        }
+    }
+
+    static synchronized void removeLink(String ipAddress)
+    {
+        if (activeLinks.remove(ipAddress))
+            log.info(String.format("Remove link %s",
+                    ipAddress));
+    }
+
+    /** Return list of established point to point links */
+    static synchronized ArrayList<String> active()
+    {
+        return new ArrayList<String>(activeLinks);
     }
 
     //****  Internal threads
@@ -98,27 +133,12 @@ public class Links {
             this.messageQ = messages;
             this.delegate = linkDelegate;
         }
-
-        protected void doJoin(String msg, SocketAddress sender)
-        {
-
-        }
-
-        protected void doLink(String msg, SocketAddress sender)
-        {
-
-        }
-        
-        protected void doAck(String msg, SocketAddress sender)
-        {
-
-        }
         
         public void run()
         {
             DatagramPacket  packet;
             String          msg;
-            SocketAddress   sender;
+            InetSocketAddress   sender;
 
             log.fine(String.format("Start link listener %s",
                         this.chan.address.toString()));
@@ -128,7 +148,7 @@ public class Links {
                     if (packet == null)
                         continue; // Timeout
                     //Multicast loopback is (probably) on so we get copies of everything we send
-                    sender = packet.getSocketAddress();
+                    sender = (InetSocketAddress)packet.getSocketAddress();
                     if (sender.equals(this.chan.srcAddr))
                         continue;
                     // OK, what do we do?
@@ -153,6 +173,21 @@ public class Links {
                 }
             }
             log.fine("End link listener");
+        }
+
+        protected void doJoin(String msg, InetSocketAddress sender)
+        {
+
+        }
+
+        protected void doLink(String msg, InetSocketAddress sender)
+        {
+
+        }
+        
+        protected void doAck(String msg, InetSocketAddress sender)
+        {
+
         }
     }
 
