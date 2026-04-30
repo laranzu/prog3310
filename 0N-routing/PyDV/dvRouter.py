@@ -25,9 +25,9 @@ import argparse, copy, hashlib, ipaddress, queue, random, socket, sys, threading
 import logging as log
 from copy import deepcopy
 
-import routeTable, links, sockLine
-from routeTable import CostTable, RouteEntry, RouteTable
-from sockLine import readLine, writeLine
+from . import routeTable, links, sockLine
+from .routeTable import CostTable, RouteEntry, RouteTable
+from .sockLine import readLine, writeLine
 
 # The port for router messages
 DV_PORT = 5252

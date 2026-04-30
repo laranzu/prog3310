@@ -20,7 +20,7 @@ messages about links being up or down, changing costs, etc.
 
 Routing table data structures and the main routing program.
 
-    domains.txt
+    ../domains.txt
 
 List of imaginary domains/subnets/areas for the routers.
 

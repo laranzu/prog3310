@@ -39,7 +39,7 @@
 import copy, ipaddress, queue, random, socket, struct, threading, time
 import logging as log
 
-import mcast
+from . import mcast
 
 # The multicast group address for link formation.
 # This is NOT the address used by the routing protocol
