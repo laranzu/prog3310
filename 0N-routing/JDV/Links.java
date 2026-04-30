@@ -1,15 +1,15 @@
 
 /** Link creation for routing simulator.
  *
- *  This module provides a multicast group protocol for programs
+ *  This class provides a multicast group protocol for programs
  *  to self-configure into subnets with one or more simulated
  *  point to point links, and functions for the actual routing
  *  protocol to get the available links.
  * 
  *  Routing program should call
- *      links.start(the-routing-object)
+ *      Links.start(the-routing-object)
  *      ...
- *      links.stop()
+ *      Links.stop()
  *  where the-routing-object is a delegate that handles new links.
  *  See the LinkDelegate spec later in code.
  * 
@@ -56,19 +56,24 @@ public class Links {
     }
 
     /**  Network config */
-    static String mcastGroup = "224.0.0.70";
-    //static String mcastGroup = "ff15::3310";
-    static int mcastPort = 3310;
-    static MCastChannel channel;
+    static String       mcastGroup = "224.0.0.70";
+    //static String       mcastGroup = "ff15::3310";
+    static int          mcastPort = 3310;
+    static MCastChannel mcastChan;
 
     /**  Forming links */
     // Minimum number links we would like to have
-    static int preferNumLinks = 2;
+    static int      preferNumLinks = 2;
     // Initial time between sending JOIN requests, millisecs
-    static int joinDelay = 4000;
-    static final int QUEUE_SIZE = 64;
-    static LinkDelegate delegate;
-    static ArrayBlockingQueue messageQ;
+    static int      joinDelay = 4000;
+    static final    int QUEUE_SIZE = 64;
+    static LinkDelegate         delegate;
+    static ArrayBlockingQueue   messageQ;
+
+    /** Thread control */
+    static boolean  running;
+    static Thread   listen;
+    static Thread   join;
 
     //****  Utility
 
@@ -78,20 +83,69 @@ public class Links {
         return System.nanoTime() / 1000000;
     }
 
+    //****  Handle incoming messages
+
+    static class Listener implements Runnable {
+        private MCastChannel        chan;
+        private ArrayBlockingQueue  messageQ;
+        private LinkDelegate        delegate;
+
+        Listener(MCastChannel mcastChan, ArrayBlockingQueue messages,
+                    LinkDelegate linkDelegate)
+        {
+            this.chan = mcastChan;
+            this.messageQ = messages;
+            this.delegate = linkDelegate;
+        }
+
+        public void run()
+        {
+            DatagramPacket  packet;
+
+            log.fine(String.format("Start link listener %s",
+                        this.chan.address.toString()));
+            while (Links.running && ! Thread.currentThread().isInterrupted()) {
+                try {
+                    packet = chan.recv();
+                    if (packet == null)
+                        continue;
+                    log.fine(String.format("RECV %d bytes from %s",
+                            packet.getLength(), packet.getAddress().toString()));
+                } catch (Exception e) {
+                    log.warning(String.format("Link Listener ERR %s", e.toString()));
+                    Thread.currentThread().interrupt();
+                }
+            }
+            log.fine("End link listener");
+        }
+    }
+
     /** Start link protocol */
     static void start(LinkDelegate programDelegate)
             throws UnknownHostException, IOException
     {
         log.info("Start link creation");
-        channel = new MCastChannel(mcastGroup, mcastPort);
+        mcastChan = new MCastChannel(mcastGroup, mcastPort);
         delegate = programDelegate;
         messageQ = new ArrayBlockingQueue(QUEUE_SIZE);
+        // Threads
+        running = true;
+        listen = new Thread(new Listener(mcastChan, messageQ, programDelegate));
+        listen.start();
     }
 
     /** And stop */
     static void stop()
     {
-        channel.close();
+        log.fine("Stop Links threads");
+        running = false;
+        try {
+            listen.join();
+        } catch (InterruptedException e) {
+            log.fine("Links interrupted?");
+        }
+
+        mcastChan.close();
         log.info("Link creation shutdown");
     }
 
