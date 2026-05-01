@@ -86,7 +86,7 @@ class DVRouter(object):
             self.domain = choices[idx].strip()
             f.close()
         except (OSError, ):
-            log.debug("Could not read domain from file domains.txt")
+            log.warning("Could not read domain from file domains.txt")
         # If not, mangle our router name
         if self.domain is None or len(self.domain) == 0:
             chars = list(self.name)
