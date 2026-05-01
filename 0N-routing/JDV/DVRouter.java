@@ -25,6 +25,7 @@
 package JDV;
 
 import java.io.*;
+import java.net.*;
 import java.nio.charset.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +37,23 @@ import java.security.NoSuchAlgorithmException;
 
 import static JDV.ProgramLogger.log;
 
+/** Design: TCP or UDP?
+ *  This routing simulator creates a TCP connection and control thread
+ *  between each pair of neighbors, which is not how RIP and similar
+ *  interior protocols usually work. A more realistic implementation
+ *  would have a single unconnected UDP socket for all incoming and
+ *  outgoing messages.
+ * 
+ *  The advantages of TCP for this education simulation are:
+ *      - separates per-neighbor control code from overall routing
+ *      - easier detection when a neighbor shuts down or crashes
+ *      - reliable messages, no need to fragment larger tables
+ */
+
 public class DVRouter {
+
+    // The port for router messages
+    static final int DV_PORT = 5252;
 
     static String   routerName;
     static String   domainName;
@@ -45,6 +62,8 @@ public class DVRouter {
     static String   mcastGroup;
     static Level    logLevel;
     static boolean  quiet;
+
+    static ServerSocket sock;
 
     /** Set router and domain name */
     protected static void assignNames()
@@ -91,6 +110,31 @@ public class DVRouter {
         }
     }
 
+    /** Create server socket */
+    protected static void initNet()
+            throws UnknownHostException, IOException, SocketException
+    {
+        int ipVersion;
+        String anyAddr;
+
+        // Change group?
+        if (mcastGroup != null)
+            Links.mcastGroup = mcastGroup;
+
+        // Want to be compatible with IPv4 or IPv6
+        ipVersion = Links.ipVersion();
+        if (ipVersion == 6)
+            anyAddr = "::";
+        else
+            anyAddr = "0.0.0.0";
+        // Do this at startup so no delay when first link established
+        sock = new ServerSocket(DV_PORT, 5, InetAddress.getByName(anyAddr));
+        sock.setReuseAddress(true);
+        log.fine(String.format("Router socket %s : %d",
+                        sock.getInetAddress().getHostAddress().toString(),
+                        sock.getLocalPort()));
+    }
+
     /** CLI arguments. Wish Java had Python style argparse in std lib */
     protected static void parseArgs(String[] args)
     {
@@ -131,6 +175,7 @@ public class DVRouter {
         try {
             parseArgs(args);
             assignNames();
+            initNet();
         } catch (Exception e) {
             log.info("Exception in DVRouter.main");
         } finally {
