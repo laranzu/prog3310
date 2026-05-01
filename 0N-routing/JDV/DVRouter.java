@@ -55,30 +55,40 @@ public class DVRouter {
     // The port for router messages
     static final int DV_PORT = 5252;
 
-    static String   routerName;
-    static String   domainName;
-    static int      beat;
-    static String   evilFile;
-    static String   mcastGroup;
-    static Level    logLevel;
-    static boolean  quiet;
+    String   name;
+    String   domain;
+    int      beat;
+    String   evilFile;
+    String   mcastGroup;
+    Level    logLevel;
+    boolean  quiet;
 
-    static ServerSocket sock;
+    ServerSocket sock;
+    RouteTable   master;
+
+    public DVRouter(String[] args)
+            throws UnknownHostException, IOException
+    {
+        this.parseArgs(args);
+        this.assignNames();
+        this.initNet();
+        this.initRouting();
+    }
 
     /** Set router and domain name */
-    protected static void assignNames()
+    void assignNames()
             throws UnknownHostException
     {
-        if (routerName == null)
-            routerName = InetAddress.getLocalHost().getHostName();
-        if (domainName == null)
-            chooseDomain();
+        if (this.name == null)
+            this.name = InetAddress.getLocalHost().getHostName();
+        if (this.domain == null)
+            this.chooseDomain();
         log.fine(String.format("New DVRouter %s for domain %s",
-                    routerName, domainName));
+                    name, domain));
     }
 
     /** Generate random domain name we route for */
-    protected static void chooseDomain()
+    void chooseDomain()
     {
         List<String>    choices;
         StringBuilder   chars;
@@ -93,33 +103,33 @@ public class DVRouter {
             // Want router with same name to pick same domain each run, but
             // random and object hash() are not deterministic.
             md = MessageDigest.getInstance("MD5");
-            hash = md.digest(routerName.getBytes("UTF-8"));
+            hash = md.digest(this.name.getBytes("UTF-8"));
             n = hash.length;
             idx = (hash[n - 4] << 24) | (hash[n - 3] << 16) |
                     (hash[n - 2] << 8) | (hash[n - 1]);
             idx = Math.abs(idx) % choices.size();
-            domainName = choices.get(idx).strip();
+            this.domain = choices.get(idx).strip();
         } catch (IOException | NoSuchAlgorithmException e) {
             log.warning("Could not read domain from file domains.txt");
         }
         // If not, mangle our router name
-        if (domainName == null || domainName.length() == 0) {
-            chars = new StringBuilder(routerName);
+        if (this.domain == null || this.domain.length() == 0) {
+            chars = new StringBuilder(this.name);
             chars.reverse();
-            domainName = chars.toString().toUpperCase();
+            this.domain = chars.toString().toUpperCase();
         }
     }
 
     /** Create server socket */
-    protected static void initNet()
+    void initNet()
             throws UnknownHostException, IOException, SocketException
     {
         int ipVersion;
         String anyAddr;
 
         // Change group?
-        if (mcastGroup != null)
-            Links.mcastGroup = mcastGroup;
+        if (this.mcastGroup != null)
+            Links.mcastGroup = this.mcastGroup;
 
         // Want to be compatible with IPv4 or IPv6
         ipVersion = Links.ipVersion();
@@ -128,54 +138,78 @@ public class DVRouter {
         else
             anyAddr = "0.0.0.0";
         // Do this at startup so no delay when first link established
-        sock = new ServerSocket(DV_PORT, 5, InetAddress.getByName(anyAddr));
-        sock.setReuseAddress(true);
+        this.sock = new ServerSocket(DV_PORT, 5, InetAddress.getByName(anyAddr));
+        this.sock.setReuseAddress(true);
         log.fine(String.format("Router socket %s : %d",
-                        sock.getInetAddress().getHostAddress().toString(),
-                        sock.getLocalPort()));
+                        this.sock.getInetAddress().getHostAddress().toString(),
+                        this.sock.getLocalPort()));
     }
 
+    /** Set up routing data and params */
+    void initRouting()
+    {
+        // The routing table starts with just us
+        this.master = new RouteTable();
+        this.master.merge(this.name, this.baseCostTable(), 0);
+    }
+
+    /** Return default startup table */
+    CostTable baseCostTable()
+    {
+        CostTable table;
+
+        table = new CostTable();
+        table.put(this.domain, 0);
+        return table;
+    }
+
+    //****          Main program            ****
+
+
     /** CLI arguments. Wish Java had Python style argparse in std lib */
-    protected static void parseArgs(String[] args)
+    void parseArgs(String[] args)
     {
         int     idx;
         String  arg;
 
         // Defaults
-        beat = 20;
-        logLevel = Level.INFO;
+        this.beat = 20;
+        this.logLevel = Level.INFO;
 
         idx = 0;
         while (idx < args.length) {
             arg = args[idx];
             if (arg.equals("-name")) {
                 idx += 1;
-                routerName = args[idx];
+                this.name = args[idx];
             } else if (arg.equals("-domain")) {
                 idx += 1;
-                domainName = args[idx];
+                this.domain = args[idx];
+            } else if (arg.equals("-beat")) {
+                idx += 1;
+                this.beat = Integer.parseInt(args[idx]);
             } else if (arg.equals("-debug")) {
-                logLevel = Level.FINE;
+                this.logLevel = Level.FINE;
             } else if (arg.equals("-quiet") || arg.equals("-q")) {
-                logLevel = Level.WARNING;
+                this.logLevel = Level.WARNING;
             } else {
                 log.warning(String.format("Unrecognised CLI arg: %s", arg));
             }
             idx += 1;
         }
         // Apply misc settings
-        quiet = logLevel.intValue() > Level.INFO.intValue();
-        log.setLevel(logLevel);
+        this.quiet = this.logLevel.intValue() > Level.INFO.intValue();
+        log.setLevel(this.logLevel);
     }
 
     //****
 
     public static void main(String[] args)
     {
+        DVRouter router;
+
         try {
-            parseArgs(args);
-            assignNames();
-            initNet();
+            router = new DVRouter(args);
         } catch (Exception e) {
             log.info("Exception in DVRouter.main");
         } finally {
