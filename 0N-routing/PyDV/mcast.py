@@ -56,6 +56,7 @@ class MCastChannel(object):
         # Want own source address for detecting loopbacks and name collisions
         # but just address and port, no IPv6 flow and scope
         self.srcAddr = self.output.getsockname()[0:2]
+        log.debug("Source address on send {}".format(self.srcAddr))
         #
         log.debug("MCastChannel sockets created")
 

@@ -99,6 +99,7 @@ class RouteTable(dict):
             for e in self[entry.domain]:
                 if e.domain == entry.domain and e.router == entry.router:
                     if e.cost == entry.cost:
+                        # No change, can stop here
                         return False
                     else:
                         e.cost = entry.cost
@@ -106,7 +107,7 @@ class RouteTable(dict):
                                     entry.domain, entry.router, entry.cost))
                         break
             else:
-                # New entry for existing destination
+                # For loop did not break, new entry for existing destination
                 self[entry.domain].append(entry)
                 log.debug("New route to dest {} link {} cost {}".format(
                                 entry.domain, entry.router, entry.cost))
@@ -161,5 +162,21 @@ class RouteTable(dict):
         for d in doomed:
             del self[d]
 
+####
 
-
+if __name__ == "__main__":
+    log.basicConfig(format="%(levelname)s %(message)s", datefmt="%H:%M:%S", level=log.DEBUG)
+    rt = RouteTable()
+    foo = RouteEntry("foo", "me", 1)
+    bar = RouteEntry("bar", "you", 2)
+    buzz = RouteEntry("bar", "buzz", 1)
+    rt.insert(foo)
+    rt.insert(bar)
+    rt.insert(buzz)
+    print(rt)
+    print(rt.active())
+    foo = RouteEntry("foo", "me", 4)
+    rt.insert(foo)
+    print(rt)
+    rt.delete("buzz")
+    print(rt)

@@ -31,6 +31,8 @@
  *  A LINK does not have to be acknowledged. A node that has already
  *  acknowledged an offer from another node can just not send a LACK.
  * 
+ *  TODO : if a LACK gets lost, won't have symmetric link.
+ * 
  *  Written by Hugh Fisher, ANU, 2026
  *  Released under Creative Commons CC0 Public Domain Dedication
  *  This code may be freely copied and modified for any purpose
