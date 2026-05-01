@@ -49,7 +49,7 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
 
     public int cost(String domain)
     {
-        if (this.contains(domain))
+        if (this.containsKey(domain))
             return this.get(domain).get(0).cost;
         else
             return INFINITY;
@@ -80,17 +80,36 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
         }
     }
 
+    /** Insert routing entry into table, return True if changed */
+
+    public boolean insert(RouteEntry entry)
+    {
+        if (this.containsKey(entry.domain)) {
+
+        } else {
+            // New destination
+            this.put(entry.domain, new ArrayList<RouteEntry>(List.of(entry)));
+            log.fine(String.format("New dest %s link %s cost %d",
+                        entry.domain, entry.router, entry.cost));
+        }
+        return true;
+    }
+
+    /** Testing */
+
     public static void main(String[] args)
     {
         RouteTable rt;
-        RouteEntry foo, bar;
+        RouteEntry foo, bar, buzz;
 
+        log.setLevel(Level.FINE);
         rt = new RouteTable();
         foo = new RouteEntry("foo", "me", 1);
         bar = new RouteEntry("bar", "you", 2);
-        rt.put("foo", new ArrayList<RouteEntry>(List.of(foo)));
-        rt.put("bar", new ArrayList<RouteEntry>(List.of(bar)));
-        rt.put("foobar", new ArrayList<RouteEntry>(List.of(foo, bar)));
+        buzz = new RouteEntry("bar", "buzz", 1);
+        rt.insert(foo);
+        rt.insert(bar);
+        rt.insert(buzz);
         System.out.println(rt);
         System.out.println("\n");
         System.out.println(rt.active());
