@@ -112,6 +112,7 @@ public class Links {
             else
                 return 0;
         } catch (UnknownHostException e) {
+            log.severe("Links: Cannot determine IP version");
             return -1;
         }
     }
