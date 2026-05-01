@@ -199,7 +199,7 @@ public class Links {
             log.fine("End link listener");
         }
 
-        protected void doJoin(String msg, InetSocketAddress sender)
+        void doJoin(String msg, InetSocketAddress sender)
         {
             // Already linked?
             if (Links.activeLinks.contains(linkAddr(sender)))
@@ -212,7 +212,7 @@ public class Links {
             }
         }
 
-        protected void doLink(String msg, InetSocketAddress sender)
+        void doLink(String msg, InetSocketAddress sender)
                 throws IOException
         {
             String addr, linkID;
@@ -241,7 +241,7 @@ public class Links {
             }
         }
         
-        protected void doAck(String msg, InetSocketAddress sender)
+        void doAck(String msg, InetSocketAddress sender)
         {
             String addr, linkID;
 
@@ -306,7 +306,7 @@ public class Links {
         }
 
         /** Delayed response to JOIN */
-        protected void respondJoin(InetSocketAddress request)
+        void respondJoin(InetSocketAddress request)
                 throws InterruptedException, IOException
         {
             // Random delay, plus extra for each existing link. This sleep
