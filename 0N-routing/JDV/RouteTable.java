@@ -84,8 +84,35 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
 
     public boolean insert(RouteEntry entry)
     {
-        if (this.containsKey(entry.domain)) {
+        boolean found;
 
+        if (this.containsKey(entry.domain)) {
+            // Existing entry?
+            found = false;
+            for (RouteEntry e : this.get(entry.domain)) {
+                if (e.domain.equals(entry.domain) && e.router.equals(entry.router)) {
+                    if (e.cost == entry.cost)
+                        // No change, can stop here
+                        return false;
+                    else {
+                        e.cost = entry.cost;
+                        log.fine(String.format(
+                                "Change cost dest %s link %s = %d",
+                                entry.domain, entry.router, entry.cost));
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (! found) {
+                // New entry for existing domain
+                this.get(entry.domain).add(entry);
+                log.fine(String.format(
+                        "New route to dest %s link %s cost %d",
+                        entry.domain, entry.router, entry.cost));
+            }
+            // Route table always ordered
+            Collections.sort(this.get(entry.domain));
         } else {
             // New destination
             this.put(entry.domain, new ArrayList<RouteEntry>(List.of(entry)));
