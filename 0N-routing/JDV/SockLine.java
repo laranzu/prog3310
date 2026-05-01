@@ -11,6 +11,8 @@
  *  This code may be freely copied and modified for any purpose
  */
 
+package JDV;
+
 import java.io.*;
 import java.net.*;
 
