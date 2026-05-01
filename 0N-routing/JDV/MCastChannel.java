@@ -99,7 +99,7 @@ public class MCastChannel {
         }
     }
 
-    protected void close()
+    public void close()
     {
         this.input.close();
         this.output.close();
