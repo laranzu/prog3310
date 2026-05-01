@@ -344,7 +344,6 @@ class DVNeighbor(threading.Thread):
         table = self.router.currentCostTable(self)
         # No exception handling: want main loop to catch
         writeLine(self.sock, "DV {}".format(self.router.name))
-        lines = str(table)
         for line in str(table).splitlines():
             writeLine(self.sock, line)
         writeLine(self.sock, "END")
