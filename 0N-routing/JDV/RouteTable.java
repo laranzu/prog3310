@@ -122,6 +122,76 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
         return true;
     }
 
+    /** Insert all the entries in cost table from router, return number changes */
+
+    public int merge(String router, CostTable costs, int hops)
+    {
+        int n, c;
+        RouteEntry e;
+
+        n = 0;
+        for (String dest : costs.keySet()) {
+            // Don't try to count past infinity :-)
+            c = costs.get(dest);
+            if (c < INFINITY)
+                c += hops;
+            e = new RouteEntry(dest, router, c);
+            if (this.insert(e))
+                n += 1;
+        }
+        return n;
+    }
+
+    /** Mark all routes through router as infinite cost */
+
+    public void poison(String router)
+    {
+        log.info(String.format("Poison router %s", router));
+        for (String dest : this.keySet()) {
+            for (RouteEntry e : this.get(dest)) {
+                if (e.router.equals(router)) {
+                    log.fine(String.format("Set %s via %s to INFINITY",
+                            dest, router));
+                    e.cost = INFINITY;
+                }
+            }
+        }
+        this.resort();
+    }
+
+    /** Remove all entries through router */
+
+    public void delete(String router)
+    {
+        ArrayList<String> doomed;
+        ArrayList<RouteEntry> routes;
+        int idx;
+
+        log.info(String.format("Delete routes through %s", router));
+        // Deleting from dict while iterating does not work, need to remember
+        doomed = new ArrayList<>();
+        for (String dest : this.keySet()) {
+            routes = this.get(dest);
+            idx = 0;
+            while (idx < routes.size()) {
+                if (routes.get(idx).router.equals(router)) {
+                    log.fine(String.format("Delete route to %s through %s",
+                                    dest, router));
+                    routes.remove(idx);
+                } else
+                    idx += 1;
+            }
+            // Empty list?
+            if (routes.size() == 0) {
+                log.fine(String.format("No routes remaining for {}", dest));
+                doomed.add(dest);
+            }
+        }
+        // Now can delete empty
+        for (String d : doomed)
+            this.remove(d);
+    }
+
     /** Testing */
 
     public static void main(String[] args)
@@ -138,7 +208,11 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
         rt.insert(bar);
         rt.insert(buzz);
         System.out.println(rt);
-        System.out.println("\n");
         System.out.println(rt.active());
+        foo = new RouteEntry("foo", "me", 4);
+        rt.insert(foo);
+        System.out.println(rt);
+        rt.delete("buzz");
+        System.out.println(rt);
     }
 }
