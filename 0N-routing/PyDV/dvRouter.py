@@ -96,6 +96,9 @@ class DVRouter(object):
     def initNet(self, config):
         """Create server socket"""
         # Want to be compatible with IPv4 or IPv6
+        # Change default group?
+        if config.mcast is not None:
+            links.mcastGroup = config.mcast
         self.ipVersion = links.ipVersion()
         if self.ipVersion == 6:
             self.addrFamily = socket.AF_INET6
@@ -103,9 +106,6 @@ class DVRouter(object):
         else:
             self.addrFamily = socket.AF_INET
             anyAddr = "0.0.0.0"
-        # Change default group?
-        if config.mcast is not None:
-            links.mcastGroup = config.mcast
         # Do this at startup so no delay when first link established
         self.sock = socket.socket(self.addrFamily, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
