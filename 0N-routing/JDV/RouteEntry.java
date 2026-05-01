@@ -18,7 +18,7 @@ public class RouteEntry
 
     public String toString()
     {
-        return String.format("  %-24s: %-16s: %2d",
+        return String.format("%-24s: %-16s: %2d",
                 this.domain, this.router, this.cost);
     }
 

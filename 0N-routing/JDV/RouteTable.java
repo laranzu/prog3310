@@ -27,13 +27,20 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
     public String toString()
     {
         List<String> destKeys;
+        ArrayList<RouteEntry> routes;
         StringBuilder txt;
 
         destKeys = new ArrayList<>(this.keySet());
         Collections.sort(destKeys);
         txt = new StringBuilder();
         for (String k : destKeys) {
-            txt.append(String.format("%s\n", k, this.get(k).toString()));
+            routes = this.get(k);
+            if (routes.size() == 0) {
+                txt.append(String.format("%-24s: Unreachable\n", k));
+            } else {
+                for (RouteEntry e : routes)
+                    txt.append(String.format("  %s\n", e.toString()));
+            }
         }
         return txt.toString();
     }
@@ -76,11 +83,16 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
     public static void main(String[] args)
     {
         RouteTable rt;
+        RouteEntry foo, bar;
 
         rt = new RouteTable();
-        //ct.put("foo", 1);
-        //ct.put("bar", 2);
-        //ct.put("supercalifragilistic", 4);
+        foo = new RouteEntry("foo", "me", 1);
+        bar = new RouteEntry("bar", "you", 2);
+        rt.put("foo", new ArrayList<RouteEntry>(List.of(foo)));
+        rt.put("bar", new ArrayList<RouteEntry>(List.of(bar)));
+        rt.put("foobar", new ArrayList<RouteEntry>(List.of(foo, bar)));
         System.out.println(rt);
+        System.out.println("\n");
+        System.out.println(rt.active());
     }
 }
