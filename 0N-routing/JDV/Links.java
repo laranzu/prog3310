@@ -100,6 +100,22 @@ public class Links {
         return nodeAddress.getHostString();
     }
 
+    /** Are we IPv4 or 6? */
+    static int ipVersion()
+    {
+        try {
+            InetAddress a = InetAddress.getByName(mcastGroup);
+            if (a instanceof Inet4Address)
+                return 4;
+            else if (a instanceof Inet6Address)
+                return 6;
+            else
+                return 0;
+        } catch (UnknownHostException e) {
+            return -1;
+        }
+    }
+
     /** Thread safe access to links */
 
     static synchronized void addLink(String ipAddress)
