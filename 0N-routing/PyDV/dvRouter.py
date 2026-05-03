@@ -28,7 +28,8 @@ import argparse, copy, hashlib, ipaddress, queue, random, socket, sys, threading
 import logging as log
 from copy import deepcopy
 
-from . import routeTable, links, sockLine
+from . import links, routeTable, sockLine
+from .links import Links
 from .routeTable import CostTable, RouteEntry, RouteTable
 from .sockLine import readLine, writeLine
 
@@ -98,8 +99,8 @@ class DVRouter(object):
         # Want to be compatible with IPv4 or IPv6
         # Change default group?
         if config.mcast is not None:
-            links.mcastGroup = config.mcast
-        self.ipVersion = links.ipVersion()
+            Links.mcastGroup = config.mcast
+        self.ipVersion = Links.ipVersion()
         if self.ipVersion == 6:
             self.addrFamily = socket.AF_INET6
             anyAddr = "::"
@@ -183,7 +184,7 @@ class DVRouter(object):
             log.debug("TCP socket to router {}".format(linkIP))
         except (OSError, ):
             log.warning("Cannot connect to router {}".format(linkIP))
-            links.removeLink(linkIP)
+            Links.removeLink(linkIP)
             return
         # We're good
         listen = DVNeighbor(self, sock)
@@ -230,10 +231,10 @@ class DVRouter(object):
     
     def run(self):
         """DV main loop"""
-        links.start(self)
+        Links.start(self)
         # Need host IP address on the interface being used by links
         # which we can get from the multicast channel
-        self.ipAddress = links.mcastChannel.output.getsockname()[0]
+        self.ipAddress = Links.mcastChannel.output.getsockname()[0]
         log.debug("Router own address {}".format(self.ipAddress))
         # Timing
         now = self.clock()
@@ -284,7 +285,7 @@ class DVRouter(object):
         for thr in self.neighbors:
             thr.join()
         log.debug("Shut down links and router socket")
-        links.stop()
+        Links.stop()
         self.sock.close()
 
 ##
@@ -337,7 +338,7 @@ class DVNeighbor(threading.Thread):
         self.router.drop(self)
         # If the program is ending this does not matter, but if it's
         # just this neighbor, want the link layer to try and find another
-        links.removeLink(self.neighborAddr)
+        Links.removeLink(self.neighborAddr)
     
     def sendTable(self):
         """Transmit current routing table to neighbor"""

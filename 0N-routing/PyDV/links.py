@@ -88,7 +88,7 @@ class Links(object):
 
     ####    Setup / teardown
     @classmethod
-    def start(cls, delegate):
+    def start(cls, delegate=None):
         """Start the link creation protocol, notify delegate of new links"""
         log.info("Start link creation")
         cls.mcastChannel = mcast.MCastChannel(cls.mcastGroup, cls.mcastPort)
@@ -287,24 +287,11 @@ class Joiner(threading.Thread):
         log.debug("Offer link to {}".format(source))
 
 
-##  Module level
-
-def start(delegate=None):
-    Links.start(delegate)
-
-def stop():
-    Links.stop()
-
-def removeLink(ipAddress):
-    Links.removeLink(ipAddress)
-
 ####
 
 if __name__ == "__main__":
     # Testing link creation
     log.basicConfig(format="%(levelname)s %(message)s", datefmt="%H:%M:%S", level=log.DEBUG)
-    start()
+    Links.start()
     time.sleep(60)
-    stop()
-
-
+    Links.stop()
