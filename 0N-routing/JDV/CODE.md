@@ -18,6 +18,8 @@ messages about links being up or down, changing costs, etc.
     CostTable.java
     RouteEntry.java
     RouteTable.java
+
+    DVNeighbor.java
     DVRouter.java
 
 Routing table data structures and the main routing program.
@@ -34,6 +36,10 @@ each of which establishes links to a few others.
     SockLine.java
 
 Utility code for reading and writing lines of text over TCP socket.
+
+    ProgramLogger.java
+
+My preferred logging config
 
     MCastChannel.java
 
