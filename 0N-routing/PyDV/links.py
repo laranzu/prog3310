@@ -47,79 +47,116 @@ import logging as log
 
 from . import mcast
 
-# The multicast group address for link formation.
-# This is NOT the address used by the routing protocol
-# NOTE: would like to use a 239. address, but those are blocked
-# in CompSci labs. 224. link local does work. Thanks Felix
-mcastGroup  = "224.0.0.70"
-# Opposite for IPv6 in CompSci: site-specific transient works, but not link-local
-# NOTE: the multicast links protocol works on IPv6, but the current lab PCS
-# do not have IPv6 addresses assigned so the router TCP sockets do not work :-(
-#mcastGroup  = "ff15::3310"
-mcastPort   = 3310
+# Used as a singleton, not expecting to create more than one
 
-mcastChannel   = None
+class Links(object):
 
-# Minimum number links we would like to have
-preferNumLinks = 2
-# Our links, identified by IP address
-_Links = None
-# Multiple threads so must protect access
-_LinksLock = None
+    # Router object passed to start() should respond to these messages
+    #   class _LinkDelegate(object):
+    #       def newLink(self, senderAddress):
 
-# Initial time between sending JOIN requests
-joinDelay = 4.0
+    # The multicast group address for link formation.
+    # This is NOT the address used by the routing protocol
+    # NOTE: would like to use a 239. address, but those are blocked
+    # in CompSci labs. 224. link local does work. Thanks Felix
+    mcastGroup  = "224.0.0.70"
+    # Opposite for IPv6 in CompSci: site-specific transient works, but not link-local
+    # NOTE: the multicast links protocol works on IPv6, but the current lab PCS
+    # do not have IPv6 addresses assigned so the router TCP sockets do not work :-(
+    #mcastGroup  = "ff15::3310"
+    mcastPort   = 3310
 
-# Threads and flag to shut down threads
-_Threads = []
-_Running = True
+    mcastChannel   = None
 
-QUEUE_SIZE = 64
+    # Minimum number links we would like to have
+    preferNumLinks = 2
+    # Our links, identified by IP address
+    activeLinks = None
+    # Multiple threads so must protect access
+    activeLock = None
 
-####    Utility
+    # Initial time between sending JOIN requests
+    joinDelay = 4.0
 
-def clock():
-    """Whatever the system relative clock is"""
-    return time.monotonic()
+    # Threads and flag to shut down threads
+    netThreads = []
+    running = True
 
-def linkAddr(nodeAddress):
-    """Just use IP address, not port"""
-    return nodeAddress[0]
+    # Communication between threads
+    QUEUE_SIZE = 64
+    messageQ = None
 
-def ipVersion():
-    """Are we IPv4 or 6?"""
-    return ipaddress.ip_address(mcastGroup).version
+    ####    Setup / teardown
+    @classmethod
+    def start(cls, delegate):
+        """Start the link creation protocol, notify delegate of new links"""
+        log.info("Start link creation")
+        cls.mcastChannel = mcast.MCastChannel(cls.mcastGroup, cls.mcastPort)
+        # Our list of links
+        cls.activeLock = threading.Lock()
+        cls.activeLinks = []
+        # Threads
+        cls.running = True
+        cls.messageQ = queue.Queue(cls.QUEUE_SIZE)
+        listen = Listener(cls.mcastChannel, cls.messageQ, delegate)
+        cls.netThreads.append(listen)
+        output = Joiner(cls.mcastChannel, cls.messageQ)
+        cls.netThreads.append(output)
+        listen.start()
+        output.start()
 
-####        Thread safe access to links
+    @classmethod
+    def stop(cls):
+        """Shut down"""
+        cls.running = False
+        for thr in cls.netThreads:
+            thr.join()
+        cls.netThreads = []
+        cls.mcastChannel.close()
+        log.info("Link creation shutdown")
 
-def addLink(ipAddress):
-    with _LinksLock:
-        if ipAddress not in _Links:
-            _Links.append(ipAddress)
-            log.info("PTP link #{} to {}".format(len(_Links), ipAddress))
+    ####    Utility
 
-def removeLink(ipAddress):
-    with _LinksLock:
-        try:
-            _Links.remove(ipAddress)
-            log.debug("Remove link {}".format(ipAddress))
-        except (ValueError, ):
-            # Harmless, already removed
-            pass
+    @classmethod
+    def clock(cls):
+        """Whatever the system relative clock is"""
+        return time.monotonic()
 
-def active():
-    """Return list of established point to point links"""
-    with _LinksLock:
-        result = copy.copy(_Links)
-    return result
+    @classmethod
+    def linkAddr(cls, nodeAddress):
+        """Just use IP address, not port"""
+        return nodeAddress[0]
 
+    @classmethod
+    def ipVersion(cls):
+        """Are we IPv4 or 6?"""
+        return ipaddress.ip_address(cls.mcastGroup).version
 
-####    Control code
+    ####        Thread safe access to links
 
+    @classmethod
+    def addLink(cls, ipAddress):
+        with cls.activeLock:
+            if ipAddress not in cls.activeLinks:
+                cls.activeLinks.append(ipAddress)
+                log.info("PTP link #{} to {}".format(len(cls.activeLinks), ipAddress))
 
-# Router object passed to start() should respond to these messages
-#   class _LinkDelegate(object):
-#       def newLink(self, senderAddress):
+    @classmethod
+    def removeLink(cls, ipAddress):
+        with cls.activeLock:
+            try:
+                cls.activeLinks.remove(ipAddress)
+                log.debug("Remove link {}".format(ipAddress))
+            except (ValueError, ):
+                # Harmless, already removed
+                pass
+
+    @classmethod
+    def active(cls):
+        """Return list of established point to point links"""
+        with cls.activeLock:
+            result = copy.copy(cls.activeLinks)
+        return result
 
 ##  Handle incoming messages
 
@@ -132,9 +169,8 @@ class Listener(threading.Thread):
         self.delegate = linkDelegate
 
     def run(self):
-        global _Running
         log.debug("Start link listener {}".format(self.group.srcAddr))
-        while _Running:
+        while Links.running:
             # New messages?
             try:
                 msg, sender = self.group.recv()
@@ -155,12 +191,12 @@ class Listener(threading.Thread):
                     log.warning("Link listener unknown message type: {}".format(msg))
             except OSError:
                 log.error("OS Error recv link group")
-                _Running = False
+                Links.running = False
         log.debug("End link listener")
 
     def doJoin(self, msg, sender):
         # Already linked?
-        if linkAddr(sender) in _Links:
+        if Links.linkAddr(sender) in Links.activeLinks:
             return
         # Delayed response, handled by joiner thread
         try:
@@ -171,19 +207,19 @@ class Listener(threading.Thread):
     def doLink(self, msg, sender):
         # Meant for us?
         try:
-            addr = msg.split()[1]
+            addr = msg.split()[1].strip()
             if addr != self.group.srcAddr[0]:
                 return
         except (IndexError, ) as e:
             log.warning("No address in {}".format(msg))
             return
         # May already be linked, or someone else may have already responded to our JOIN
-        if len(active()) < preferNumLinks and linkAddr(sender) not in _Links:
+        if len(Links.activeLinks) < Links.preferNumLinks and addr not in Links.activeLinks:
             log.debug("Accept link from {}".format(sender))
-            addLink(linkAddr(sender))
+            Links.addLink(addr)
             if self.delegate:
-                self.delegate.newLink(linkAddr(sender))
-            self.group.send("LACK {}".format(linkAddr(sender)))
+                self.delegate.newLink(addr)
+            self.group.send("LACK {}".format(Links.linkAddr(sender)))
         else:
             log.debug("Ignore link from {}".format(sender))
 
@@ -191,16 +227,16 @@ class Listener(threading.Thread):
         #
         # Meant for us?
         try:
-            addr = msg.split()[1]
+            addr = msg.split()[1].strip()
             if addr != self.group.srcAddr[0]:
                 return
         except (IndexError, ) as e:
             log.warning("No address in {}".format(msg))
             return
         # Must be in response to our offer, so always add
-        addLink(linkAddr(sender))
+        Links.addLink(addr)
         if self.delegate:
-            self.delegate.newLink(linkAddr(sender))
+            self.delegate.newLink(addr)
         log.debug("Link ack from {}".format(sender))
         
 
@@ -215,14 +251,13 @@ class Joiner(threading.Thread):
         self.messages = messageQueue
 
     def run(self):
-        global _Running
         log.debug("Start link joiner {}".format(self.group.srcAddr))
         # Initial request
         self.group.send("JOIN")
         log.debug("Send JOIN")
-        nextJoin = clock() + joinDelay
+        nextJoin = Links.clock() + Links.joinDelay
         try:
-            while _Running:
+            while Links.running:
                 # JOIN to process?
                 try:
                     request = self.messages.get(block=True, timeout=1.0)
@@ -230,15 +265,15 @@ class Joiner(threading.Thread):
                 except queue.Empty:
                     pass
                 # Want more links?
-                if len(active()) < preferNumLinks:
-                    now = clock()
+                if len(Links.activeLinks) < Links.preferNumLinks:
+                    now = Links.clock()
                     if now > nextJoin:
                         self.group.send("JOIN")
                         log.debug("Send JOIN")
-                        nextJoin = now + joinDelay
+                        nextJoin = now + Links.joinDelay
         except OSError:
             log.error("OS Error send link group")
-            _Running = False
+            Links.running = False
         log.debug("End link joiner")
 
     def respondJoin(self, request):
@@ -247,39 +282,21 @@ class Joiner(threading.Thread):
         source = request[1]
         # Random delay, plus extra for each existing link. This sleep
         # also means we only respond to one JOIN at a time
-        time.sleep(random.uniform(0, joinDelay) + len(active()) * joinDelay)
-        self.group.send("LINK {}".format(linkAddr(source)))
+        time.sleep(random.uniform(0, Links.joinDelay) + len(Links.activeLinks) * Links.joinDelay)
+        self.group.send("LINK {}".format(Links.linkAddr(source)))
         log.debug("Offer link to {}".format(source))
 
+
+##  Module level
+
 def start(delegate=None):
-    """Start the link creation protocol, notify delegate of new links"""
-    global mcastChannel, _Links, _LinksLock, _Threads, _Running
-    #
-    log.info("Start link creation")
-    mcastChannel = mcast.MCastChannel(mcastGroup, mcastPort)
-    # Our list of links
-    _LinksLock = threading.Lock()
-    _Links = []
-    # Threads
-    _Running = True
-    messageQ = queue.Queue(QUEUE_SIZE)
-    listen = Listener(mcastChannel, messageQ, delegate)
-    _Threads.append(listen)
-    output = Joiner(mcastChannel, messageQ)
-    _Threads.append(output)
-    listen.start()
-    output.start()
+    Links.start(delegate)
 
 def stop():
-    """Shut down"""
-    global mcastChannel, _Threads, _Running
-    #
-    _Running = False
-    for thr in _Threads:
-        thr.join()
-    _Threads = []
-    mcastChannel.close()
-    log.info("Link creation shutdown")
+    Links.stop()
+
+def removeLink(ipAddress):
+    Links.removeLink(ipAddress)
 
 ####
 
