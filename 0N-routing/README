@@ -1,0 +1,8 @@
+
+Distance Vector routing simulator for COMP3310
+
+Name is "0N" because I don't know what week this will be used in.
+
+Instructions in 0N-routing.pdf, generated from .tex
+
+Python version in PyDV/, Java in JDV. Should be compatible.
