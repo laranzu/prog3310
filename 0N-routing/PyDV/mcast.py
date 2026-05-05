@@ -32,18 +32,24 @@ class MCastChannel(object):
 
     def createSockets(self):
         """Input and output sockets for group channel"""
+        # There are annoying differences between IPv4 and IPv6
+        ipv6 = self.address.version == 6
         # For listening
         log.debug("Create input socket for {} : {}".format(self.address, self.destPort))
-        if self.address.version == 6:
+        if ipv6:
             family = socket.AF_INET6
+            anyAddr = "::"
         else:
             family = socket.AF_INET
+            anyAddr = "0.0.0.0"
         self.input = socket.socket(family, socket.SOCK_DGRAM)
         self.input.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.input.bind((self.address.compressed, self.destPort))
+        # Should really bind to interface for multicast address, but hard in Python.
+        # Binding to the multicast address does work on Linux/MacOS, but not MSWin :-(
+        self.input.bind((anyAddr, self.destPort))
         self.input.settimeout(1.0)
         log.debug("Add membership for {}".format(self.address))
-        if self.address.version == 6:
+        if ipv6:
             ipv6_mreq = struct.pack('!16sI', self.address.packed, 0)
             self.input.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_JOIN_GROUP, ipv6_mreq)
         else:
