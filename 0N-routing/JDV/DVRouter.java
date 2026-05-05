@@ -297,10 +297,14 @@ public class DVRouter
     /** Recalc everything */
     void calculateRoutes()
     {
-        int nChanges;
+        int         nChanges;
+        CostTable   costs;
         
         nChanges = 0;
-        // TODO Each neighbor
+        for (DVNeighbor n : this.neighbors) {
+            costs = n.currentCosts();
+            nChanges += this.master.merge(n.neighborName, costs, 1);
+        }
         if (nChanges > 0)
             log.info(String.format("%d changes to routing table", nChanges));
     }
