@@ -1,6 +1,11 @@
 
 Distance Vector routing simulator for COMP3310
 
+Version 1.1 2026-05-05
+    Actually recalcs routing in Java
+    Python multicast works on MS Windows
+
+
 Name is "0N" because I don't know what week this will be used in.
 
 Instructions in 0N-routing.pdf, generated from .tex
