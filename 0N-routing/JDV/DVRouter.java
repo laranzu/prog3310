@@ -2,7 +2,7 @@
 /** Main program for Distance Vector routing simulator.
  * 
  *  Run as a package from parent directory
- *      java PyDV.DVRouter [ args ]
+ *      java JDV.DVRouter [ args ]
  * 
  *  CLI args
  *      -name NAME      Router identifier, defaults hostname
@@ -370,6 +370,18 @@ public class DVRouter
         this.sock.close();
     }
 
+    /** Reminder */
+    void usage()
+    {
+        System.out.println("Usage: java JDV.DVRouter");
+        System.out.println("    -name NAME   Router identifier");
+        System.out.println("    -domain NAME Domain for router");
+        System.out.println("    -beat SECS   Time in seconds between routing messages");
+        System.out.println("    -evil FILE   File of fake destination:cost to advertise");
+        System.out.println("    -debug       Lots of detail and DEBUG level log messages");
+        System.out.println("    -quiet       Less detail, only warning or error log messages");
+    }
+
     /** CLI arguments. Wish Java had Python style argparse in std lib */
     void parseArgs(String[] args)
     {
@@ -383,7 +395,10 @@ public class DVRouter
         idx = 0;
         while (idx < args.length) {
             arg = args[idx];
-            if (arg.equals("-name")) {
+            if (arg.equals("-h") || arg.equals("-help") || arg.equals("--help")) {
+                usage();
+                System.exit(0);
+            } if (arg.equals("-name")) {
                 idx += 1;
                 this.name = args[idx];
             } else if (arg.equals("-domain")) {
