@@ -81,8 +81,9 @@ public class Links {
     static ArrayList<String> activeLinks;
 
     /** Thread control */
-    static volatile boolean  running;
-    static InetAddrQueue messageQ;
+    static volatile boolean running;
+    static InetAddrQueue    messageQ;
+    static ExecutorService  scheduler;
     static Thread   listen;
     static Thread   output;
 
@@ -323,7 +324,7 @@ public class Links {
 
 
     /** Start link protocol */
-    static void start(LinkDelegate programDelegate)
+    static void start(LinkDelegate programDelegate, ExecutorService threadPool)
             throws UnknownHostException, IOException
     {
         log.info("Start link creation");
@@ -333,10 +334,20 @@ public class Links {
         messageQ = new InetAddrQueue(QUEUE_SIZE);
         // Threads
         running = true;
+        if (threadPool != null)
+            scheduler = threadPool;
+        else
+            scheduler = Executors.newCachedThreadPool();
         listen = new Thread(new Listener(mcastChan, messageQ, programDelegate));
         output = new Thread(new Joiner(mcastChan, messageQ));
-        listen.start();
-        output.start();
+        scheduler.execute(listen);
+        scheduler.execute(output);
+    }
+
+    static void start(LinkDelegate programDelegate)
+            throws UnknownHostException, IOException
+    {
+        start(programDelegate, null);
     }
 
     /** And stop */
@@ -345,8 +356,8 @@ public class Links {
         log.fine("Stop Links threads");
         running = false;
         try {
-            output.join();
-            listen.join();
+            scheduler.shutdown();
+            scheduler.awaitTermination(30, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
             // Don't care
         }
