@@ -81,7 +81,7 @@ public class Links {
     static ArrayList<String> activeLinks;
 
     /** Thread control */
-    static boolean  running;
+    static volatile boolean  running;
     static InetAddrQueue messageQ;
     static Thread   listen;
     static Thread   output;

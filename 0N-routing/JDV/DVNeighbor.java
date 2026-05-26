@@ -16,12 +16,12 @@ import static JDV.ProgramLogger.log;
 
 class DVNeighbor extends Thread {
 
-    DVRouter    router;
-    Socket      sock;
-    InetSocketAddress neighborAddr;
-    String      neighborName;
-    CostTable   latest;
-    boolean     running;
+    DVRouter            router;
+    Socket              sock;
+    InetSocketAddress   neighborAddr;
+    String              neighborName;
+    CostTable           latest;
+    volatile boolean    running;
     
 
     public DVNeighbor(DVRouter router, Socket tcpSocket)

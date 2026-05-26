@@ -2,7 +2,7 @@
 /** Main program for Distance Vector routing simulator.
  * 
  *  Run as a package from parent directory
- *      python -m PyDV.dvRouter [ args ]
+ *      java PyDV.DVRouter [ args ]
  * 
  *  CLI args
  *      -name NAME      Router identifier, defaults hostname
@@ -66,9 +66,9 @@ public class DVRouter
     Level   logLevel;
     boolean quiet;
 
-    boolean         running;
-    ServerSocket    sock;
-    RouteTable      master;
+    volatile boolean    running;
+    ServerSocket        sock;
+    RouteTable          master;
     ArrayBlockingQueue<String> requests;
     ArrayList<DVNeighbor> neighbors;
 
