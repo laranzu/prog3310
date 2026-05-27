@@ -84,8 +84,6 @@ public class Links {
     static volatile boolean running;
     static InetAddrQueue    messageQ;
     static ExecutorService  scheduler;
-    static Thread   listen;
-    static Thread   output;
 
     //****  Utility
 
@@ -338,10 +336,8 @@ public class Links {
             scheduler = threadPool;
         else
             scheduler = Executors.newCachedThreadPool();
-        listen = new Thread(new Listener(mcastChan, messageQ, programDelegate));
-        output = new Thread(new Joiner(mcastChan, messageQ));
-        scheduler.execute(listen);
-        scheduler.execute(output);
+        scheduler.execute(new Listener(mcastChan, messageQ, programDelegate));
+        scheduler.execute(new Joiner(mcastChan, messageQ));
     }
 
     static void start(LinkDelegate programDelegate)
