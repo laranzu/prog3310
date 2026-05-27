@@ -4,16 +4,7 @@
  *  Run as a package from parent directory
  *      java JDV.DVRouter [ args ]
  * 
- *  CLI args
- *      -name NAME      Router identifier, defaults hostname
- *      -domain NAME    Router domain, default to random from domains.txt
- *      -beat SECS      How often to send router messages
- *      -evil FILE      Advertise routes listed in FILE as well as ourself
- * 
- *      -mcast MCAST    Use different multicast address for link creation
- * 
- *      -debug          Lots and lots of internal operation detail
- *      -quiet          Only warnings and above
+ *      See usage() for details of args
  * 
  *  Uses American spelling for neighbor because primary reference is
  *  Interconnections: Second Edition by Radia Perlman
