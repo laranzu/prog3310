@@ -264,7 +264,7 @@ public class DVRouter
         // Don't remove from neighbors list, possible thread conflict.
         // The DV main loop will collect the neighbor within a few seconds
         log.warning(String.format("Lost connection to router %s (%s)",
-                    link.neighborName, link.neighborAddr));
+                    link.neighborName, link.neighborAddr.getHostString()));
         // Delete route, or poison?
         this.master.delete(link.neighborName);
         //this.master.poison(link.neighborName);

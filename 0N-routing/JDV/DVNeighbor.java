@@ -49,7 +49,7 @@ class DVNeighbor extends Thread {
             SockLine.writeLine(this.sock, this.router.name);
             this.neighborName = SockLine.readLine(this.sock).strip();
             System.out.println(String.format("New neighbor %s (%s)",
-                            this.neighborName, this.neighborAddr));
+                            this.neighborName, this.neighborAddr.getHostString()));
         } catch (IOException e) {
             log.warning(String.format("Handshake failed neighbor %s",
                         this.neighborAddr));
