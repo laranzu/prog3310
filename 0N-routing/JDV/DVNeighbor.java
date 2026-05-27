@@ -73,6 +73,11 @@ class DVNeighbor extends Thread {
             log.fine(String.format("End connection %s", this.neighborName));
         this.sock.close();
         } catch (IOException | InterruptedException e) {
+            // Link lost or we are shutting down
+            this.running = false;
+        } catch (RuntimeException e) {
+            log.warning(String.format("Neighbor routing: %s",
+                            e.toString()));
             this.running = false;
         }
         // In case main router tries to use before noticing we have ended
