@@ -330,7 +330,7 @@ public class Links {
     {
         log.info("Start link creation");
         activeLinks = new ArrayList<>();
-        mcastChan = new MCastChannel(mcastGroup, mcastPort);
+        mcastChan = new MCastChannel(mcastGroup, mcastPort, mcastInterface);
         delegate = programDelegate;
         messageQ = new InetAddrQueue(QUEUE_SIZE);
         // Threads

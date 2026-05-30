@@ -38,15 +38,22 @@ public class MCastChannel {
 
     /** Create socket pair and join group */
 
-    MCastChannel(String ipAddress, int portNumber)
+    MCastChannel(String ipAddress, int portNumber, NetworkInterface ipInterface)
             throws UnknownHostException, IOException, SocketException
     {
         this.address  = new InetSocketAddress(ipAddress, portNumber);
+        this.iface    = ipInterface;
         this.srcAddr  = null;
         this.seqNo    = 0;
         this.createSockets();
         log.info(String.format("Connected to group channel %s : %d",
                     this.address.getHostString(), this.address.getPort()));
+    }
+
+    MCastChannel(String ipAddress, int portNumber)
+            throws UnknownHostException, IOException, SocketException
+    {
+        this(ipAddress, portNumber, null);
     }
 
     /** Input and output sockets */
@@ -57,7 +64,8 @@ public class MCastChannel {
         log.fine(String.format("Create input socket for %s : %d",
                     this.address.getHostString(), this.address.getPort()));
         this.input = new MulticastSocket(this.address.getPort());
-        this.iface = NetworkInterface.getByInetAddress(this.address.getAddress());
+        if (this.iface == null)
+            this.iface = NetworkInterface.getByInetAddress(this.address.getAddress());
         // Joining is so much easier in Java than in Python
         this.input.joinGroup(this.address, this.iface);
         this.input.setSoTimeout(1 * 1000);
