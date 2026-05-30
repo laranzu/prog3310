@@ -66,6 +66,9 @@ public class Links {
     static String       mcastGroup = "224.0.0.70";
     //static String       mcastGroup = "ff15::3310";
     static int          mcastPort = 3310;
+    // On non-lab PCs may need to specify interface
+    static NetworkInterface mcastInterface;
+
     static MCastChannel mcastChan;
 
     /**  Forming links */

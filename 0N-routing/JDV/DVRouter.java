@@ -53,6 +53,8 @@ public class DVRouter
     int     beat;
     String  evilFile;
     String  mcastGroup;
+    String  iface;
+
     String  ipAddress;
     Level   logLevel;
     boolean quiet;
@@ -131,7 +133,10 @@ public class DVRouter
         // Change group?
         if (this.mcastGroup != null)
             Links.mcastGroup = this.mcastGroup;
-
+        // Use specific network interface?
+        if (this.iface != null)
+            Links.mcastInterface = NetworkInterface.getByInetAddress(
+                        InetAddress.getByName(this.iface));
         // Want to be compatible with IPv4 or IPv6
         ipVersion = Links.ipVersion();
         if (ipVersion == 6)
@@ -369,6 +374,8 @@ public class DVRouter
         System.out.println("    -domain NAME Domain for router");
         System.out.println("    -beat SECS   Time in seconds between routing messages");
         System.out.println("    -evil FILE   File of fake destination:cost to advertise");
+        System.out.println("    -mcast ADDR  Multicast group for link creation");
+        System.out.println("    -iface ADDR  IP address of network interface to use");
         System.out.println("    -debug       Lots of detail and DEBUG level log messages");
         System.out.println("    -quiet       Less detail, only warning or error log messages");
     }
@@ -401,6 +408,12 @@ public class DVRouter
             } else if (arg.equals("-evil")) {
                 idx += 1;
                 this.evilFile = args[idx];
+            } else if (arg.equals("-mcast")) {
+                idx += 1;
+                this.mcastGroup = args[idx];
+            } else if (arg.equals("-iface")) {
+                idx += 1;
+                this.iface = args[idx];
             } else if (arg.equals("-debug")) {
                 this.logLevel = Level.FINE;
             } else if (arg.equals("-quiet") || arg.equals("-q")) {
