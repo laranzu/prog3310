@@ -20,10 +20,11 @@ PKT_SIZE = 1024
 class MCastChannel(object):
     """Multicast group communication channel"""
 
-    def __init__(self, IPaddress, portNumber):
+    def __init__(self, IPaddress, portNumber, iface=None):
         """Create and connect new socket for group address"""
         self.address  = ipaddress.ip_address(IPaddress)
         self.destPort = portNumber
+        self.iface    = iface
         self.srcAddr  = ("", 0)
         # Not used at the moment
         self.seqNo    = 1
@@ -44,8 +45,7 @@ class MCastChannel(object):
             anyAddr = "0.0.0.0"
         self.input = socket.socket(family, socket.SOCK_DGRAM)
         self.input.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # Should really bind to interface for multicast address, but hard in Python.
-        # Binding to the multicast address does work on Linux/MacOS, but not MSWin :-(
+        # Input socket receives on any interface
         self.input.bind((anyAddr, self.destPort))
         self.input.settimeout(1.0)
         log.debug("Add membership for {}".format(self.address))
@@ -58,6 +58,14 @@ class MCastChannel(object):
         # For sending
         log.debug("Create output socket for {} : {}".format(self.address, self.destPort))
         self.output = socket.socket(family, socket.SOCK_DGRAM)
+        # May want to send on specific interface
+        if self.iface is not None:
+            if ipv6:
+                self.output.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF,
+                                        self.iface.packed)
+            else:
+                self.output.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
+                                        self.iface.packed)
         self.output.connect((self.address.compressed, self.destPort))
         # Want own source address for detecting loopbacks and name collisions
         # but just address and port, no IPv6 flow and scope

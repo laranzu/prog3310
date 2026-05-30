@@ -5,16 +5,7 @@
     Run as a module from parent directory
         python -m PyDV.dvRouter [ args ]
 
-    CLI args
-        -name NAME      Router identifier, defaults hostname
-        -domain NAME    Router domain, default to random from domains.txt
-        -beat SECS      How often to send router messages
-        -evil FILE      Advertise routes listed in FILE as well as ourself
-        
-        -mcast MCAST    Use different multicast address for link creation
-        
-        -debug          Lots and lots of internal operation detail
-        -quiet          Only warnings and above
+        See parseArgs() for details of args
 """
 
 #   Uses American spelling for neighbor because primary reference is
@@ -100,6 +91,9 @@ class DVRouter(object):
         # Change default group?
         if config.mcast is not None:
             Links.mcastGroup = config.mcast
+        # Use specific network interface?
+        if config.iface is not None:
+            Links.mcastInterface = ipaddress.ip_interface(config.iface)
         self.ipVersion = Links.ipVersion()
         if self.ipVersion == 6:
             self.addrFamily = socket.AF_INET6
@@ -402,6 +396,9 @@ def parseArgs(argv):
     parser.add_argument("-mcast", type=str, dest="mcast", action="store",
             default=None,
             help="Multicast group for link creation")
+    parser.add_argument("-iface", type=str, dest="iface", action="store",
+            default=None,
+            help="IP address of network interface to use")
 
     parser.add_argument("-debug", dest="logLevel", action="store_const", const=log.DEBUG,
             default=log.INFO,

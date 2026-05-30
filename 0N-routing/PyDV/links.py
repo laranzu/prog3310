@@ -65,8 +65,10 @@ class Links(object):
     # do not have IPv6 addresses assigned so the router TCP sockets do not work :-(
     #mcastGroup  = "ff15::3310"
     mcastPort   = 3310
+    # On non-lab PCs may need to specify interface
+    mcastInterface  = None
 
-    mcastChannel   = None
+    mcastChannel    = None
 
     # Minimum number links we would like to have
     preferNumLinks = 2
@@ -91,7 +93,8 @@ class Links(object):
     def start(cls, delegate=None):
         """Start the link creation protocol, notify delegate of new links"""
         log.info("Start link creation")
-        cls.mcastChannel = mcast.MCastChannel(cls.mcastGroup, cls.mcastPort)
+        cls.mcastChannel = mcast.MCastChannel(cls.mcastGroup, cls.mcastPort,
+                                                cls.mcastInterface)
         # Our list of links
         cls.activeLock = threading.Lock()
         cls.activeLinks = []
