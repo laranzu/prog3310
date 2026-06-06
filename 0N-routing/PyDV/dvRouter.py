@@ -27,6 +27,8 @@ from .sockLine import readLine, writeLine
 # The port for router messages
 DV_PORT = 5252
 
+TIMEOUT = 4
+
 #   Design: TCP or UDP?
 #   This routing simulator creates a TCP connection and control thread
 #   between each pair of neighbors, which is not how RIP and similar
@@ -105,7 +107,7 @@ class DVRouter(object):
         self.sock = socket.socket(self.addrFamily, socket.SOCK_STREAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         # A timeout makes sockets play nicely with Ctrl-C
-        self.sock.settimeout(10)
+        self.sock.settimeout(TIMEOUT)
         self.sock.bind((anyAddr, DV_PORT))
         self.sock.listen(5)
         log.debug("Router socket {}".format(self.sock.getsockname()))
@@ -166,6 +168,7 @@ class DVRouter(object):
                 log.debug("Try active connect")
                 sock = socket.socket(self.addrFamily, socket.SOCK_STREAM)
                 sock.connect((linkIP, DV_PORT))
+                log.debug("Active TCP connect to router {}".format(linkIP))
             else:
                 log.debug("Waiting for connect")
                 # Note: it is possible that if there two new links and we
@@ -175,7 +178,7 @@ class DVRouter(object):
                 # end up creating them in a different order
                 # (A suspicious router would check that connection from known link)
                 sock, remote = self.sock.accept()
-            log.debug("TCP socket to router {}".format(linkIP))
+                log.debug("Passive TCP connect from router {}".format(remote))
         except (OSError, ):
             log.warning("Cannot connect to router {}".format(linkIP))
             Links.removeLink(linkIP)
