@@ -216,12 +216,13 @@ class Listener(threading.Thread):
         except (IndexError, ) as e:
             log.warning("No address in {}".format(msg))
             return
+        sender = Links.linkAddr(sender)
         # May already be linked, or someone else may have already responded to our JOIN
-        if len(Links.activeLinks) < Links.preferNumLinks and addr not in Links.activeLinks:
+        if len(Links.activeLinks) < Links.preferNumLinks and sender not in Links.activeLinks:
             log.debug("Accept link from {}".format(sender))
-            Links.addLink(addr)
+            Links.addLink(sender)
             if self.delegate:
-                self.delegate.newLink(addr)
+                self.delegate.newLink(sender)
             self.group.send("LACK {}".format(Links.linkAddr(sender)))
         else:
             log.debug("Ignore link from {}".format(sender))
