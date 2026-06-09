@@ -238,10 +238,11 @@ class Listener(threading.Thread):
             log.warning("No address in {}".format(msg))
             return
         # Must be in response to our offer, so always add
-        Links.addLink(addr)
-        if self.delegate:
-            self.delegate.newLink(addr)
         log.debug("Link ack from {}".format(sender))
+        sender = Links.linkAddr(sender)
+        Links.addLink(sender)
+        if self.delegate:
+            self.delegate.newLink(sender)
         
 
 ##  Request link creation
