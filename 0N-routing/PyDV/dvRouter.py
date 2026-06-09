@@ -27,7 +27,7 @@ from .sockLine import readLine, writeLine
 # The port for router messages
 DV_PORT = 5252
 
-TIMEOUT = 4
+TIMEOUT = 8
 
 #   Design: TCP or UDP?
 #   This routing simulator creates a TCP connection and control thread
@@ -179,7 +179,8 @@ class DVRouter(object):
                 # (A suspicious router would check that connection from known link)
                 sock, remote = self.sock.accept()
                 log.debug("Passive TCP connect from router {}".format(remote))
-        except (OSError, ):
+        except (OSError, ) as e:
+            log.debug(str(e))
             log.warning("Cannot connect to router {}".format(linkIP))
             Links.removeLink(linkIP)
             return
