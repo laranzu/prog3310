@@ -223,7 +223,7 @@ class Listener(threading.Thread):
             Links.addLink(sender)
             if self.delegate:
                 self.delegate.newLink(sender)
-            self.group.send("LACK {}".format(Links.linkAddr(sender)))
+            self.group.send("LACK {}".format(sender))
         else:
             log.debug("Ignore link from {}".format(sender))
 
