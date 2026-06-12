@@ -52,13 +52,15 @@ the GUI.
 
 These programs are Python or Java using just the standard
 library so could run elsewhere. All of the hosts would need
-to be connected to a single Ethernet LAN or a single WiFi access
-point, with multicast. Because of this it probably won't work
-on the ANU campus WiFi.
+to be connected to a single Ethernet LAN; or a single WiFi access
+point with multicast. (It probably won't work on the ANU campus
+WiFi, which uses multiple access points and apparently no
+multicast.)
 
 You don't need \NAME{WireShark} or \NAME{tcpdump}, as these
 \SQ{routers} are not using a standard protocol and will print
-out what is happening for you.
+out what is happening for you. But feel free to look at the
+packets anyway.
 
 \SECTION{Running a router}
 
@@ -92,6 +94,19 @@ human intervention.
 
 This program will start printing out messages. (Real routers
 are usually in a rack somewhere and nobody looks at them.)
+The initial output should look something like
+
+\begin{CODE}\begin{verbatim}
+INFO New DVRouter nanotech for domain ENCOM
+INFO Start link creation
+INFO Connected to group channel 224.0.0.70 : 3310
+Router: nanotech Domain: ENCOM
+INFO Router beat
+
+Routing table
+  ENCOM                   : nanotech        :  0
+\end{verbatim}\end{CODE}
+
 It will keep running until you \texttt{Ctrl-C}, and again you
 don't need to tell anyone else that you are doing so.
 
@@ -186,7 +201,7 @@ routers at more or less the same time. Don't use \texttt{-q}, the
 more detailed output will be useful.
 
 A router starts by printing out its own name and domain, and then
-the initial routing table. This should look something like:
+the initial routing table. This will look like:
 
 \begin{CODE}\begin{verbatim}
 Router: nanotech Domain: ENCOM
@@ -195,25 +210,49 @@ Routing table
   ENCOM                   : nanotech        :  0
 \end{verbatim}\end{CODE}
 
-A distance vector router starts up knowing only who it is and
-its own domain, which is zero network hops away.
+A distance vector router starts up knowing only who it
+is and its own domain, which is zero network hops away.
 
 
 \STEP
 The routers will establish links, and start receiving cost
-tables from other routers. Each \SQ{beat} the routing table gets
+tables from other routers.
+
+\begin{CODE}\begin{verbatim}
+INFO 12:42:01 PTP link #1 to 192.168.1.114 
+INFO 12:42:01 New neighbour 192.168.1.114 
+New neighbor graphite (192.168.1.114)
+graphite costs
+  InGen                   :  0
+\end{verbatim}\end{CODE}
+
+Each \SQ{beat} the routing table gets
 updated based on the new costs from other routers. Start counting
 the beats for your router and how many changes are made each time.
 
 The router prints out its entire routing table, which will usually
 have multiple entries for each domain, sorted by cost. The first
 entry, the lowest cost, is what would be used for actual traffic.
+The routing table when there is one neighbour should look something
+like:
+
+\begin{CODE}\begin{verbatim}
+INFO 12:42:39 Router beat 
+INFO 12:42:39 1 changes to routing table 
+
+Routing table
+  ENCOM                   : nanotech        :  0
+  ENCOM                   : graphite        :  2
+  InGen                   : graphite        :  1
+\end{verbatim}\end{CODE}
 
 After a while the routers should all stablise, with no changes to
 the routing tables.
 
 Of the first entries for the domains, what is the longest
 (highest cost) path in the network?
+
+Why does every router have more than one entry for its own domain?
 
 Are the routes symmetrical? Meaning, if router A wants to
 reach the domain for router B, is its cost the same as the cost
