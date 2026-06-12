@@ -77,7 +77,7 @@ public class MCastChannel {
         this.output.connect(this.address);
         // Own source address for detecting loopbacks
         this.srcAddr = (InetSocketAddress)this.output.getLocalSocketAddress();
-        log.fine(String.format("Source address on send %s", this.srcAddr.toString()));
+        log.fine(String.format("Source address on send %s", this.srcAddr.getHostString()));
 
         log.fine("MCastChannel sockets created");
      }

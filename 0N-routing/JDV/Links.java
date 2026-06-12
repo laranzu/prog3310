@@ -168,7 +168,7 @@ public class Links {
             InetSocketAddress   sender;
 
             log.fine(String.format("Start link listener %s",
-                        this.group.address.toString()));
+                        this.group.address.getHostString()));
             while (Links.running && ! Thread.currentThread().isInterrupted()) {
                 try {
                     packet = group.recv();
@@ -279,7 +279,7 @@ public class Links {
             long nextJoin, now;
 
             log.fine(String.format("Start link joiner %s",
-                        this.group.address.toString()));
+                        this.group.address.getHostString()));
             // Initial request straight away
             nextJoin = Links.clock() - 1;
             while (Links.running && ! Thread.currentThread().isInterrupted()) {
