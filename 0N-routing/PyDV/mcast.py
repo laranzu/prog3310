@@ -45,7 +45,7 @@ class MCastChannel(object):
             anyAddr = "0.0.0.0"
         self.input = socket.socket(family, socket.SOCK_DGRAM)
         self.input.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # Input socket receives on any interface
+        # Input socket
         self.input.bind((anyAddr, self.destPort))
         self.input.settimeout(1.0)
         log.debug("Add membership for {}".format(self.address))
@@ -58,7 +58,8 @@ class MCastChannel(object):
         # For sending
         log.debug("Create output socket for {} : {}".format(self.address, self.destPort))
         self.output = socket.socket(family, socket.SOCK_DGRAM)
-        # May want to send on specific interface
+        self.output.connect((self.address.compressed, self.destPort))
+        # May want to use specific interface
         if self.iface is not None:
             if ipv6:
                 self.input.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_MULTICAST_IF,
@@ -70,7 +71,6 @@ class MCastChannel(object):
                                         self.iface.packed)
                 self.output.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
                                         self.iface.packed)
-        self.output.connect((self.address.compressed, self.destPort))
         # Want own source address for detecting loopbacks and name collisions
         # but just address and port, no IPv6 flow and scope
         self.srcAddr = self.output.getsockname()[0:2]
