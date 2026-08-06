@@ -27,8 +27,8 @@
 #                   want more links. For an interesting simulation
 #                   really want more than one link per node.
 #       LINK <ip>   Response to JOIN, offer to establish link to
-#                   node at <ip>, listen on TCP socket. Other ends
-#                   accepts by connecting.
+#                   node at <ip>, listen on TCP socket. Joiner
+#                   acknowledges offer by connecting over TCP.
 #
 #   Nodes that receive JOIN wait a random delay before sending a LINK
 #   offer, with delay increased by number of links already established.
@@ -36,6 +36,12 @@
 #
 #   A LINK does not have to be acknowledged. A node that has already
 #   acknowledged an offer from another node can just not connect.
+#
+#   In version 1 there was an extra message, Link ACK, and the link
+#   layer did not open a TCP socket, instead just passing the IP
+#   address up to the router. This could lead to asymmetric links
+#   and other inconsistencies if a LACK got lost or the router did
+#   not open a connection.
 #
 #   Written by Hugh Fisher, ANU, 2026
 #   Released under Creative Commons CC0 Public Domain Dedication
@@ -253,11 +259,8 @@ class Listener(threading.Thread):
             log.debug("Try active link to {}".format(sender))
             linkSock = socket.socket(Links.ipFamily(), socket.SOCK_STREAM)
             try:
-                print("timeout")
                 linkSock.settimeout(Links.joinDelay)
-                print("connect")
                 linkSock.connect((sender, Links.ptpPort))
-                print("addLink")
                 Links.addLink(linkSock)
                 if self.delegate:
                     self.delegate.newLink(linkSock)
