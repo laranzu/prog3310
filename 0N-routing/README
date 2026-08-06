@@ -1,6 +1,10 @@
 
 Distance Vector routing simulator for COMP3310
 
+Version 2.0 2026-08-06
+    WORK IN PROGRESS
+    Link layer now creates point to point TCP sockets
+    
 Version 1.1 2026-05-05
     Actually recalcs routing in Java
     Python multicast works on MS Windows
