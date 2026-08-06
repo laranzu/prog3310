@@ -22,21 +22,20 @@
 #   Each host exchanges messages to randomly distribute connections
 #   across all participating hosts.
 #
-#   The protocol has three messages:
+#   The protocol has two messages:
 #       JOIN        Sent by newly created node, and by nodes that
 #                   want more links. For an interesting simulation
 #                   really want more than one link per node.
-#       LINK <ip>   Response to JOIN, offer to establish link to node at <ip>
-#       LACK <ip>   Acknowledgement of LINK offer from <ip>
+#       LINK <ip>   Response to JOIN, offer to establish link to
+#                   node at <ip>, listen on TCP socket. Other ends
+#                   accepts by connecting.
 #
 #   Nodes that receive JOIN wait a random delay before sending a LINK
 #   offer, with delay increased by number of links already established.
 #   This distributes links over nodes more evenly.
 #
 #   A LINK does not have to be acknowledged. A node that has already
-#   acknowledged an offer from another node can just not send a LACK.
-#
-#   TODO : if a LACK gets lost, won't have symmetric link.
+#   acknowledged an offer from another node can just not connect.
 #
 #   Written by Hugh Fisher, ANU, 2026
 #   Released under Creative Commons CC0 Public Domain Dedication
@@ -53,7 +52,7 @@ class Links(object):
 
     # Router object passed to start() should respond to these messages
     #   class _LinkDelegate(object):
-    #       def newLink(self, senderAddress):
+    #       def newLink(self, tcpSocket):
 
     # The multicast group address for link formation.
     # This is NOT the address used by the routing protocol
@@ -67,8 +66,11 @@ class Links(object):
     mcastPort   = 3310
     # On non-lab PCs may need to specify interface
     mcastInterface  = None
-
     mcastChannel    = None
+
+    # TCP port and passive socket for actual links
+    ptpPort = 5252
+    ptpSock = None
 
     # Minimum number links we would like to have
     preferNumLinks = 2
@@ -93,20 +95,38 @@ class Links(object):
     def start(cls, delegate=None):
         """Start the link creation protocol, notify delegate of new links"""
         log.info("Start link creation")
+        # Network sockets
         cls.mcastChannel = mcast.MCastChannel(cls.mcastGroup, cls.mcastPort,
                                                 cls.mcastInterface)
+        cls.ptpSock = cls.createPassive()
         # Our list of links
         cls.activeLock = threading.Lock()
-        cls.activeLinks = []
+        cls.activeLinks = {}
         # Threads
         cls.running = True
         cls.messageQ = queue.Queue(cls.QUEUE_SIZE)
         listen = Listener(cls.mcastChannel, cls.messageQ, delegate)
         cls.netThreads.append(listen)
-        output = Joiner(cls.mcastChannel, cls.messageQ)
+        output = Joiner(cls.mcastChannel, cls.messageQ, delegate)
         cls.netThreads.append(output)
         listen.start()
         output.start()
+
+    @classmethod
+    def createPassive(cls):
+        """Create a TCP socket for incoming point to point"""
+        if cls.ipVersion() == 6:
+            anyAddr = "::"
+        else:
+            anyAddr = "0.0.0.0"
+        sock = socket.socket(cls.ipFamily(), socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.settimeout(cls.joinDelay)
+        sock.bind((anyAddr, cls.ptpPort))
+        sock.listen(5)
+        log.debug("Created passive PTP socket {} : {}".format(
+                    sock.getsockname()[0], cls.ptpPort))
+        return sock
 
     @classmethod
     def stop(cls):
@@ -116,6 +136,9 @@ class Links(object):
             thr.join()
         cls.netThreads = []
         cls.mcastChannel.close()
+        for ptp in cls.activeLinks.values():
+            ptp.close()
+        cls.activeLinks = {}
         log.info("Link creation shutdown")
 
     ####    Utility
@@ -135,22 +158,32 @@ class Links(object):
         """Are we IPv4 or 6?"""
         return ipaddress.ip_address(cls.mcastGroup).version
 
+    @classmethod
+    def ipFamily(cls):
+        """AF_INET_WHATEVER for socket creation"""
+        if cls.ipVersion() == 6:
+            return socket.AF_INET6
+        else:
+            return socket.AF_INET
+
     ####        Thread safe access to links
 
     @classmethod
-    def addLink(cls, ipAddress):
+    def addLink(cls, linkSocket):
+        ipAddress = cls.linkAddr(linkSocket.getpeername())
         with cls.activeLock:
             if ipAddress not in cls.activeLinks:
-                cls.activeLinks.append(ipAddress)
+                cls.activeLinks[ipAddress] = linkSocket
                 log.info("PTP link #{} to {}".format(len(cls.activeLinks), ipAddress))
 
     @classmethod
-    def removeLink(cls, ipAddress):
+    def removeLink(cls, linkSocket):
+        ipAddress = cls.linkAddr(linkSocket.getpeername())
         with cls.activeLock:
             try:
-                cls.activeLinks.remove(ipAddress)
+                del cls.activeLinks[ipAddress]
                 log.debug("Remove link {}".format(ipAddress))
-            except (ValueError, ):
+            except (KeyError, ):
                 # Harmless, already removed
                 pass
 
@@ -188,12 +221,10 @@ class Listener(threading.Thread):
                     self.doJoin(msg, sender)
                 elif msg.startswith("LINK"):
                     self.doLink(msg, sender)
-                elif msg.startswith("LACK"):
-                    self.doAck(msg, sender)
                 else:
                     log.warning("Link listener unknown message type: {}".format(msg))
             except OSError:
-                log.error("OS Error recv link group")
+                log.error("OS Error link group")
                 Links.running = False
         log.debug("End link listener")
 
@@ -219,30 +250,22 @@ class Listener(threading.Thread):
         sender = Links.linkAddr(sender)
         # May already be linked, or someone else may have already responded to our JOIN
         if len(Links.activeLinks) < Links.preferNumLinks and sender not in Links.activeLinks:
-            log.debug("Accept link from {}".format(sender))
-            Links.addLink(sender)
-            if self.delegate:
-                self.delegate.newLink(sender)
-            self.group.send("LACK {}".format(sender))
+            log.debug("Try active link to {}".format(sender))
+            linkSock = socket.socket(Links.ipFamily(), socket.SOCK_STREAM)
+            try:
+                print("timeout")
+                linkSock.settimeout(Links.joinDelay)
+                print("connect")
+                linkSock.connect((sender, Links.ptpPort))
+                print("addLink")
+                Links.addLink(linkSock)
+                if self.delegate:
+                    self.delegate.newLink(linkSock)
+                log.debug("Active PTP link to {}".format(sender))
+            except (socket.timeout, TimeoutError):
+                log.warning("Could not connect to link offer from {}".format(sender))
         else:
             log.debug("Ignore link from {}".format(sender))
-
-    def doAck(self, msg, sender):
-        #
-        # Meant for us?
-        try:
-            addr = msg.split()[1].strip()
-            if addr != self.group.srcAddr[0]:
-                return
-        except (IndexError, ) as e:
-            log.warning("No address in {}".format(msg))
-            return
-        # Must be in response to our offer, so always add
-        log.debug("Link ack from {}".format(sender))
-        sender = Links.linkAddr(sender)
-        Links.addLink(sender)
-        if self.delegate:
-            self.delegate.newLink(sender)
         
 
 ##  Request link creation
@@ -250,10 +273,11 @@ class Listener(threading.Thread):
 class Joiner(threading.Thread):
     """Send JOIN and LINK requests"""
 
-    def __init__(self, group, messageQueue):
+    def __init__(self, group, messageQueue, linkDelegate=None):
         super().__init__()
         self.group = group
         self.messages = messageQueue
+        self.delegate = linkDelegate
 
     def run(self):
         log.debug("Start link joiner {}".format(self.group.srcAddr))
@@ -276,8 +300,8 @@ class Joiner(threading.Thread):
                         self.group.send("JOIN")
                         log.debug("Send JOIN")
                         nextJoin = now + Links.joinDelay
-        except OSError:
-            log.error("OS Error send link group")
+        except OSError as e:
+            log.error("OS Error send link group: {}".format(e))
             Links.running = False
         log.debug("End link joiner")
 
@@ -288,8 +312,17 @@ class Joiner(threading.Thread):
         # Random delay, plus extra for each existing link. This sleep
         # also means we only respond to one JOIN at a time
         time.sleep(random.uniform(0, Links.joinDelay) + len(Links.activeLinks) * Links.joinDelay)
-        self.group.send("LINK {}".format(Links.linkAddr(source)))
         log.debug("Offer link to {}".format(source))
+        self.group.send("LINK {}".format(Links.linkAddr(source)))
+        try:
+            log.debug("Wait for PTP connect")
+            linkSock, peer = Links.ptpSock.accept()
+            log.debug("Accepted PTP")
+            Links.addLink(linkSock)
+            if self.delegate:
+                self.delegate.newLink(linkSock)
+        except (socket.timeout, TimeoutError):
+            log.warning("No response to LINK offer")
 
 
 ####
