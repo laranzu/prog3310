@@ -88,29 +88,15 @@ class DVRouter(object):
             self.domain = ''.join(chars).upper()
     
     def initNet(self, config):
-        """Create server socket"""
-        # Want to be compatible with IPv4 or IPv6
+        """Configure link layer"""
+        # Standard TCP port
+        Links.ptpPort = DV_PORT
         # Change default group?
         if config.mcast is not None:
             Links.mcastGroup = config.mcast
         # Use specific network interface?
         if config.iface is not None:
             Links.mcastInterface = ipaddress.ip_interface(config.iface)
-        self.ipVersion = Links.ipVersion()
-        if self.ipVersion == 6:
-            self.addrFamily = socket.AF_INET6
-            anyAddr = "::"
-        else:
-            self.addrFamily = socket.AF_INET
-            anyAddr = "0.0.0.0"
-        # Do this at startup so no delay when first link established
-        self.sock = socket.socket(self.addrFamily, socket.SOCK_STREAM)
-        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # A timeout makes sockets play nicely with Ctrl-C
-        self.sock.settimeout(TIMEOUT)
-        self.sock.bind((anyAddr, DV_PORT))
-        self.sock.listen(5)
-        log.debug("Router socket {}".format(self.sock.getsockname()))
         
     def initRouting(self, config):
         """Set up routing data and params"""
@@ -152,39 +138,15 @@ class DVRouter(object):
         """For all routing-related timestamps, delays, etc"""
         return time.monotonic()
 
-    def newLink(self, linkIP):
+    def newLink(self, linkSocket):
         """New neighbour detected"""
-        log.info("New neighbour {}".format(linkIP))
+        log.info("New link {}".format(linkSocket.getpeername()))
         # Because link detection has own thread, just push onto queue
         # for later processing
-        self.requests.put(linkIP)
+        self.requests.put(linkSocket)
     
-    def establishLink(self, linkIP):
-        """Set up routing connection to new neighbor"""
-        # Only want one socket between each pair of routers, so rule
-        # is that whoever has highest IP address connects to the other
-        try:
-            if self.ipAddress > linkIP:
-                log.debug("Try active connect")
-                sock = socket.socket(self.addrFamily, socket.SOCK_STREAM)
-                sock.connect((linkIP, DV_PORT))
-                log.debug("Active TCP connect to router {}".format(linkIP))
-            else:
-                log.debug("Waiting for connect")
-                # Note: it is possible that if there two new links and we
-                # are waiting for both, this accept will return the socket
-                # for a different link! But since the new neighbor identifies
-                # the other end by the socket, it doesn't matter, we just
-                # end up creating them in a different order
-                # (A suspicious router would check that connection from known link)
-                sock, remote = self.sock.accept()
-                log.debug("Passive TCP connect from router {}".format(remote))
-        except (OSError, ) as e:
-            log.debug(str(e))
-            log.warning("Cannot connect to router {}".format(linkIP))
-            Links.removeLink(linkIP)
-            return
-        # We're good
+    def establishLink(self, sock):
+        """Start thread for new neighbor"""
         listen = DVNeighbor(self, sock)
         self.neighbors.append(listen)
         listen.start()
@@ -230,10 +192,6 @@ class DVRouter(object):
     def run(self):
         """DV main loop"""
         Links.start(self)
-        # Need host IP address on the interface being used by links
-        # which we can get from the multicast channel
-        self.ipAddress = Links.mcastChannel.output.getsockname()[0]
-        log.debug("Router own address {}".format(self.ipAddress))
         # Timing
         now = self.clock()
         nextBeat = now
@@ -284,7 +242,6 @@ class DVRouter(object):
             thr.join()
         log.debug("Shut down links and router socket")
         Links.stop()
-        self.sock.close()
 
 ##
 
@@ -336,7 +293,7 @@ class DVNeighbor(threading.Thread):
         self.router.drop(self)
         # If the program is ending this does not matter, but if it's
         # just this neighbor, want the link layer to try and find another
-        Links.removeLink(self.neighborAddr)
+        Links.removeLink(self.sock)
     
     def sendTable(self):
         """Transmit current routing table to neighbor"""
