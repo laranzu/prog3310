@@ -184,14 +184,13 @@ class Links(object):
 
     @classmethod
     def removeLink(cls, linkSocket):
-        ipAddress = cls.linkAddr(linkSocket.getpeername())
         with cls.activeLock:
-            try:
-                del cls.activeLinks[ipAddress]
-                log.debug("Remove link {}".format(ipAddress))
-            except (KeyError, ):
-                # Harmless, already removed
-                pass
+            # Socket might have been closed, so need to search
+            keys = list(cls.activeLinks.keys())
+            for k in keys:
+                if cls.activeLinks[k] is linkSocket:
+                    del cls.activeLinks[k]
+            # No problem if already deleted
 
     @classmethod
     def active(cls):
