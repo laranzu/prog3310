@@ -208,8 +208,8 @@ public class Links {
                     // OK, what do we do?
                     msg = new String(packet.getData(), 0,
                                     packet.getLength(), "UTF-8");
-                    log.fine(String.format("Received %s from %s",
-                            msg, packet.getSocketAddress().toString()));
+                    log.fine(String.format("Received %s from %s", msg, 
+                            ((InetSocketAddress)packet.getSocketAddress()).getHostString()));
                     if (msg.startsWith("JOIN"))
                         this.doJoin(msg, sender);
                     else if (msg.startsWith("LINK"))
