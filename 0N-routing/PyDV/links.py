@@ -327,7 +327,7 @@ class Joiner(threading.Thread):
         try:
             log.debug("Wait for PTP connect")
             linkSock, peer = Links.ptpSock.accept()
-            log.debug("Accepted PTP")
+            log.debug("Accepted PTP from {}".format(Links.linkAddr(peer)))
             Links.addLink(linkSock)
             if self.delegate:
                 self.delegate.newLink(linkSock)
