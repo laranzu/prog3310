@@ -13,25 +13,33 @@
  *  where the-routing-object is a delegate that handles new links.
  *  See the LinkDelegate spec later in code.
  * 
+ *  Can run stand alone for testing from parent dir
+ *      java JDV.Links
+ *
  *  There is no configuration needed other than a multicast group address.
  *  Each host exchanges messages to randomly distribute connections
  *  across all participating hosts.
  * 
- *  The protocol has three messages:
+ *  The protocol has two messages:
  *     JOIN        Sent by newly created node, and by nodes that
  *                 want more links. For an interesting simulation
  *                 really want more than one link per node.
- *     LINK <ip>   Response to JOIN, offer to establish link to node at <ip>
- *     LACK <ip>   Acknowledgement of LINK offer from <ip>
+ *     LINK <ip>   Response to JOIN, offer to establish link to
+ *                 node at <ip>, listen on TCP socket. Joiner
+ *                 acknowledges offer by connecting over TCP.
  * 
  *  Nodes that receive JOIN wait a random delay before sending a LINK
  *  offer, with delay increased by number of links already established.
  *  This distributes links over nodes more evenly.
  * 
  *  A LINK does not have to be acknowledged. A node that has already
- *  acknowledged an offer from another node can just not send a LACK.
+ *  acknowledged an offer from another node can just not connect.
  * 
- *  TODO : if a LACK gets lost, won't have symmetric link.
+ *  In version 1 there was an extra message, Link ACK, and the link
+ *  layer did not open a TCP socket, instead just passing the IP
+ *  address up to the router. This could lead to asymmetric links
+ *  and other inconsistencies if a LACK got lost or the router did
+ *  not open a connection.
  * 
  *  Written by Hugh Fisher, ANU, 2026
  *  Released under Creative Commons CC0 Public Domain Dedication
@@ -54,7 +62,7 @@ public class Links {
 
     /** The object passed to Links.start() */
     public interface LinkDelegate {
-        void newLink(String senderAddress);
+        void newLink(Socket tcpSocket);
     }
 
     // Java really needs typedef
@@ -63,13 +71,23 @@ public class Links {
     };
 
     /**  Network config */
+    // The multicast group address for link formation.
+    // This is NOT the address used by the routing protocol
+    // NOTE: would like to use a 239. address, but those are blocked
+    // in CompSci labs. 224. link local does work. Thanks Felix
     static String       mcastGroup = "224.0.0.70";
+    // Opposite for IPv6 in CompSci: site-specific transient works, but not link-local
+    // NOTE: the multicast links protocol works on IPv6, but the current lab PCS
+    // do not have IPv6 addresses assigned so the router TCP sockets do not work :-(
     //static String       mcastGroup = "ff15::3310";
     static int          mcastPort = 3310;
     // On non-lab PCs may need to specify interface
     static NetworkInterface mcastInterface;
+    static MCastChannel     mcastChan;
 
-    static MCastChannel mcastChan;
+    /** TCP port and passive socket for actual links */
+    static int          ptpPort = 5252;
+    static ServerSocket ptpSock;
 
     /**  Forming links */
     // Minimum number links we would like to have
@@ -81,7 +99,7 @@ public class Links {
     static LinkDelegate delegate;
 
     /** The links */
-    static ArrayList<String> activeLinks;
+    static Map<String, Socket> activeLinks;
 
     /** Thread control */
     static volatile boolean running;
@@ -97,9 +115,9 @@ public class Links {
     }
 
     /** Identify links by IP address as string, no port */
-    static String linkAddr(InetSocketAddress nodeAddress)
+    static String linkAddr(SocketAddress nodeAddress)
     {
-        return nodeAddress.getHostString();
+        return ((InetSocketAddress)nodeAddress).getHostString();
     }
 
     /** Are we IPv4 or 6? */
@@ -121,26 +139,34 @@ public class Links {
 
     /** Thread safe access to links */
 
-    static synchronized void addLink(String ipAddress)
+    static synchronized void addLink(Socket linkSocket)
     {
-        if (! activeLinks.contains(ipAddress)) {
-            activeLinks.add(ipAddress);
+        String ipAddress = linkAddr(linkSocket.getRemoteSocketAddress());
+        if (activeLinks.putIfAbsent(ipAddress, linkSocket) != null) {
             log.info(String.format("PTP link #%d to %s",
                     activeLinks.size(), ipAddress));
         }
     }
 
-    static synchronized void removeLink(String ipAddress)
+    static synchronized void removeLink(Socket linkSocket)
     {
-        if (activeLinks.remove(ipAddress))
-            log.info(String.format("Remove link %s",
-                    ipAddress));
+        String k;
+
+        // Socket might have been closed, so cannot lookup remote address
+        k = null;
+        for (Map.Entry<String, Socket> entry : activeLinks.entrySet()) {
+            if (entry.getValue() == linkSocket)
+                k = entry.getKey();
+        }
+        if (k != null) {
+            activeLinks.remove(k);
+        }
     }
 
     /** Return list of established point to point links */
-    static synchronized ArrayList<String> active()
+    static synchronized ArrayList<Socket> active()
     {
-        return new ArrayList<String>(activeLinks);
+        return new ArrayList<Socket>(activeLinks.values());
     }
 
     //****  Internal threads
@@ -187,8 +213,6 @@ public class Links {
                         this.doJoin(msg, sender);
                     else if (msg.startsWith("LINK"))
                         this.doLink(msg, sender);
-                    else if (msg.startsWith("LACK"))
-                        this.doAck(msg, sender);
                     else
                         log.warning(String.format("Link listener unknown message type: %s", msg));
                 } catch (IOException e) {
@@ -205,7 +229,7 @@ public class Links {
         void doJoin(String msg, InetSocketAddress sender)
         {
             // Already linked?
-            if (Links.activeLinks.contains(linkAddr(sender)))
+            if (Links.activeLinks.containsKey(linkAddr(sender)))
                 return;
             // Delayed response, handled by joiner thread
             try {
@@ -219,6 +243,7 @@ public class Links {
                 throws IOException
         {
             String addr, linkID;
+            Socket linkSock;
 
             // Meant for us?
             try {
@@ -233,31 +258,19 @@ public class Links {
             // responded to our JOIN
             linkID = linkAddr(sender);
             if (Links.activeLinks.size() < Links.preferNumLinks &&
-                        ! Links.activeLinks.contains(linkID)) {
-                log.fine(String.format("Accept link from %s", linkID));
-                Links.addLink(linkID);
-                if (this.delegate != null)
-                    this.delegate.newLink(linkID);
-                this.group.send(String.format("LACK %s", linkID));
+                        ! Links.activeLinks.containsKey(linkID)) {
+                log.fine(String.format("Try active link to %s", linkID));
+                try {
+                    linkSock = new Socket(linkID, Links.ptpPort);
+                    Links.addLink(linkSock);
+                    if (this.delegate != null)
+                        this.delegate.newLink(linkSock);
+                } catch (IOException e) {
+                    log.warning(String.format("Could not connect to link offer from %s", linkID));
+                }
             } else {
                 log.fine(String.format("Ignore link from %s", sender.toString()));
             }
-        }
-        
-        void doAck(String msg, InetSocketAddress sender)
-        {
-            String addr, linkID;
-
-            // Meant for us?
-            addr = msg.split(" ")[1].strip();
-            if (! addr.equals(linkAddr(this.group.srcAddr)))
-                return;
-            linkID = linkAddr(sender);
-            // Must be in response to our offer, so always add
-            Links.addLink(linkID);
-            if (this.delegate != null)
-                this.delegate.newLink(linkID);
-            log.fine(String.format("Link ack from %s", sender.toString()));
         }
     }
 
@@ -266,11 +279,15 @@ public class Links {
     static class Joiner implements Runnable {
         private MCastChannel  group;
         private InetAddrQueue messages;
+        private LinkDelegate  delegate;
 
-        Joiner(MCastChannel mcastChan, InetAddrQueue messageQueue)
+        Joiner(MCastChannel mcastChan,
+                InetAddrQueue messageQueue,
+                LinkDelegate linkDelegate)
         {
             this.group = mcastChan;
             this.messages = messageQueue;
+            this.delegate = linkDelegate;
         }
 
         public void run()
@@ -312,12 +329,24 @@ public class Links {
         void respondJoin(InetSocketAddress request)
                 throws InterruptedException, IOException
         {
+            Socket linkSock;
+
             // Random delay, plus extra for each existing link. This sleep
             // also means we only respond to one JOIN at a time
             Thread.sleep((long)(Math.random() * Links.joinDelay) +
                             Links.activeLinks.size() * Links.joinDelay);
-            this.group.send(String.format("LINK %s", linkAddr(request)));
             log.fine(String.format("Offer link to %s", request.toString()));
+            this.group.send(String.format("LINK %s", linkAddr(request)));
+            try {
+                log.fine("Wait for PTP connect");
+                linkSock = ptpSock.accept();
+                log.fine("Accepted PTP");
+                Links.addLink(linkSock);
+                if (this.delegate != null)
+                    this.delegate.newLink(linkSock);
+            } catch (IOException e) {
+                log.warning("No response to LINK offer");
+            }
         }
     }
 
@@ -329,8 +358,11 @@ public class Links {
             throws UnknownHostException, IOException
     {
         log.info("Start link creation");
-        activeLinks = new ArrayList<>();
+        // Network sockets
         mcastChan = new MCastChannel(mcastGroup, mcastPort, mcastInterface);
+        ptpSock = createPassive();
+        // Out list of links
+        activeLinks = new HashMap<String, Socket>();
         delegate = programDelegate;
         messageQ = new InetAddrQueue(QUEUE_SIZE);
         // Threads
@@ -340,13 +372,33 @@ public class Links {
         else
             scheduler = Executors.newCachedThreadPool();
         scheduler.execute(new Listener(mcastChan, messageQ, programDelegate));
-        scheduler.execute(new Joiner(mcastChan, messageQ));
+        scheduler.execute(new Joiner(mcastChan, messageQ, programDelegate));
     }
 
     static void start(LinkDelegate programDelegate)
             throws UnknownHostException, IOException
     {
         start(programDelegate, null);
+    }
+
+    static ServerSocket createPassive()
+            throws UnknownHostException, IOException, SocketException
+    {
+        ServerSocket sock;
+        String       anyAddr;
+
+        // Create a TCP socket for incoming point to point
+        if (ipVersion() == 6)
+            anyAddr = "::";
+        else
+            anyAddr = "0.0.0.0";
+        sock = new ServerSocket(ptpPort, 5, InetAddress.getByName(anyAddr));
+        sock.setSoTimeout(joinDelay);
+        sock.setReuseAddress(true);
+        log.fine(String.format("Created passive PTP socket %s : %d",
+                                sock.getInetAddress().getHostAddress(),
+                                sock.getLocalPort()));
+        return sock;
     }
 
     /** And stop */
@@ -360,7 +412,15 @@ public class Links {
         } catch (InterruptedException e) {
             // Don't care
         }
-
+        log.fine("Close Links sockets");
+        try {
+            ptpSock.close();
+            for (Socket ptp : activeLinks.values()) {
+                ptp.close();
+            }
+        } catch (IOException e) {
+            // Don't care
+        }
         mcastChan.close();
         log.info("Link creation shutdown");
     }
