@@ -141,10 +141,18 @@ class Links(object):
         for thr in cls.netThreads:
             thr.join()
         cls.netThreads = []
-        cls.mcastChannel.close()
+        try:
+            cls.ptpSock.close()
+        except OSError:
+            // Already closed 
+            pass
         for ptp in cls.activeLinks.values():
-            ptp.close()
+            try:
+                ptp.close()
+            except OSError:
+                pass
         cls.activeLinks = {}
+        cls.mcastChannel.close()
         log.info("Link creation shutdown")
 
     ####    Utility
@@ -185,7 +193,7 @@ class Links(object):
     @classmethod
     def removeLink(cls, linkSocket):
         with cls.activeLock:
-            # Socket might have been closed, so need to search
+            # Socket might have been closed, so cannot lookup remote address
             keys = list(cls.activeLinks.keys())
             for k in keys:
                 if cls.activeLinks[k] is linkSocket:
