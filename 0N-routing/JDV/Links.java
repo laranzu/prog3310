@@ -142,7 +142,8 @@ public class Links {
     static synchronized void addLink(Socket linkSocket)
     {
         String ipAddress = linkAddr(linkSocket.getRemoteSocketAddress());
-        if (activeLinks.putIfAbsent(ipAddress, linkSocket) != null) {
+        if (! activeLinks.containsKey(ipAddress)) {
+            activeLinks.put(ipAddress, linkSocket);
             log.info(String.format("PTP link #%d to %s",
                     activeLinks.size(), ipAddress));
         }
@@ -265,6 +266,7 @@ public class Links {
                     Links.addLink(linkSock);
                     if (this.delegate != null)
                         this.delegate.newLink(linkSock);
+                    log.fine(String.format("Active PTP link to %s", linkID));
                 } catch (IOException e) {
                     log.warning(String.format("Could not connect to link offer from %s", linkID));
                 }
@@ -340,7 +342,8 @@ public class Links {
             try {
                 log.fine("Wait for PTP connect");
                 linkSock = ptpSock.accept();
-                log.fine("Accepted PTP");
+                log.fine(String.format("Accepted PTP from %s",
+                            linkAddr(linkSock.getRemoteSocketAddress())));
                 Links.addLink(linkSock);
                 if (this.delegate != null)
                     this.delegate.newLink(linkSock);
