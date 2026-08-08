@@ -140,7 +140,7 @@ class DVRouter(object):
 
     def newLink(self, linkSocket):
         """New neighbour detected"""
-        log.info("New link {}".format(linkSocket.getpeername()))
+        log.info("New neighbour {}".format(linkSocket.getpeername()))
         # Because link detection has own thread, just push onto queue
         # for later processing
         self.requests.put(linkSocket)
