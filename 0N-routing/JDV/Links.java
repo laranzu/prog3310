@@ -262,7 +262,9 @@ public class Links {
                         ! Links.activeLinks.containsKey(linkID)) {
                 log.fine(String.format("Try active link to %s", linkID));
                 try {
-                    linkSock = new Socket(linkID, Links.ptpPort);
+                    linkSock = new Socket();
+                    linkSock.connect(new InetSocketAddress(linkID, Links.ptpPort),
+                                        Links.joinDelay);
                     Links.addLink(linkSock);
                     if (this.delegate != null)
                         this.delegate.newLink(linkSock);
