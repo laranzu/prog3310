@@ -183,7 +183,7 @@ public class RouteTable extends Hashtable<String, ArrayList<RouteEntry>> {
             }
             // Empty list?
             if (routes.size() == 0) {
-                log.fine(String.format("No routes remaining for {}", dest));
+                log.fine(String.format("No routes remaining for %s", dest));
                 doomed.add(dest);
             }
         }
