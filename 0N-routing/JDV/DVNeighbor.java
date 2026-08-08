@@ -86,7 +86,7 @@ class DVNeighbor extends Thread {
         this.router.drop(this);
         // If the program is ending this does not matter, but if it's
         // just this neighbor, want the link layer to try and find another
-        Links.removeLink(Links.linkAddr(this.neighborAddr));
+        Links.removeLink(this.sock);
     }
     
     /** Transmit current routing table to neighbor */

@@ -62,7 +62,7 @@ public class DVRouter
     volatile boolean    running;
     ServerSocket        sock;
     RouteTable          master;
-    ArrayBlockingQueue<String> requests;
+    ArrayBlockingQueue<Socket> requests;
     ArrayList<DVNeighbor> neighbors;
 
     //****      Setup       ****/
@@ -123,13 +123,12 @@ public class DVRouter
         }
     }
 
-    /** Create server socket */
+    /** Configure link layer */
     void initNet()
             throws UnknownHostException, IOException, SocketException
     {
-        int ipVersion;
-        String anyAddr;
-
+        // Standard TCP port
+        Links.ptpPort = DV_PORT;
         // Change group?
         if (this.mcastGroup != null)
             Links.mcastGroup = this.mcastGroup;
@@ -137,18 +136,6 @@ public class DVRouter
         if (this.iface != null)
             Links.mcastInterface = NetworkInterface.getByInetAddress(
                         InetAddress.getByName(this.iface));
-        // Want to be compatible with IPv4 or IPv6
-        ipVersion = Links.ipVersion();
-        if (ipVersion == 6)
-            anyAddr = "::";
-        else
-            anyAddr = "0.0.0.0";
-        // Do this at startup so no delay when first link established
-        this.sock = new ServerSocket(DV_PORT, 5, InetAddress.getByName(anyAddr));
-        this.sock.setReuseAddress(true);
-        log.fine(String.format("Router socket %s : %d",
-                        this.sock.getInetAddress().getHostAddress().toString(),
-                        this.sock.getLocalPort()));
     }
 
     /** Set up routing data and params */
@@ -163,7 +150,7 @@ public class DVRouter
         // Beat time is in secs, but Java threads use millisecs
         this.beat *= 1000;
         // Requests for new neighbor
-        this.requests = new ArrayBlockingQueue<String>(8);
+        this.requests = new ArrayBlockingQueue<Socket>(8);
         // Each neighbor gets own thread
         this.neighbors = new ArrayList<DVNeighbor>();
     }
@@ -204,51 +191,28 @@ public class DVRouter
     }
     
     /** New neighbour detected */
-    public void newLink(String linkIP)
+    public void newLink(Socket linkSocket)
     {
-        log.info(String.format("New neighbour %s", linkIP));
+        log.info(String.format("New neighbour %s",
+                ((InetSocketAddress)linkSocket.getRemoteSocketAddress()).getHostString()));
         // Because link detection has own thread, just push onto
         // queue for later processing
         try {
-            this.requests.add(linkIP);
+            this.requests.add(linkSocket);
         } catch (IllegalStateException e) {
             log.warning("Requests queue full, drop link");
-            Links.removeLink(linkIP);
+            Links.removeLink(linkSocket);
         }
     }
     
     /** Set up routing connection to new neighbor */
-    void establishLink(String linkIP)
+    void establishLink(Socket sock)
     {
-        Socket      sock;
         DVNeighbor  listen;
-        
-        // Only want one socket between each pair of routers, so rule
-        // is that whoever has highest IP address connects to the other
-        try {
-            if (this.ipAddress.compareTo(linkIP) > 0) {
-                log.fine("Try active connect");
-                sock = new Socket(linkIP, DV_PORT);
-            } else {
-                log.fine("Waiting for connect");
-                // Note: it is possible that if there two new links and we
-                // are waiting for both, this accept will return the socket
-                // for a different link! But since the new neighbor identifies
-                // the other end by the socket, it doesn't matter, we just
-                // end up creating them in a different order
-                // (A suspicious router would check that connection from known link)
-                sock = this.sock.accept();
-            }
-            log.fine(String.format("TCP socket to router %s", linkIP));
-        } catch (IOException e) {
-            log.warning(String.format("Cannot connect to router %s", linkIP));
-            Links.removeLink(linkIP);
-            return;
-        }
-        // We're good
-       listen = new DVNeighbor(this, sock);
-       this.neighbors.add(listen);
-       listen.start();
+
+        listen = new DVNeighbor(this, sock);
+        this.neighbors.add(listen);
+        listen.start();
     }
     
     /** Used by neighbor thread to notify us that a link has gone down */
@@ -311,7 +275,7 @@ public class DVRouter
     public void run()
     {
         long    now, nextBeat;
-        String  req;
+        Socket  req;
         
         try {
             Links.start(this);
